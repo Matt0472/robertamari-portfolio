@@ -1,0 +1,473 @@
+---
+/*
+ * Who the author is: her photo beside her story and what she studied; below, her path drawn as a
+ * root that grows down from the horizon while it is read, one rootlet for each step (DES-02).
+ */
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon, { type IconName } from '../Icon.astro';
+import Mark from '../Mark.astro';
+import { getSection, paragraphs } from '../../lib/content';
+import { emphasize } from '../../lib/emphasis';
+import { resolveImage } from '../../lib/images';
+
+type Kind = Exclude<CollectionEntry<'about'>['data']['path'][number]['kind'], ''>;
+
+const kindIcons: Record<Kind, IconName> = {
+  education: 'graduation-cap',
+  work: 'briefcase',
+  travel: 'plane',
+  project: 'sprout',
+  writing: 'pen-line',
+  award: 'award',
+};
+
+const about = await getSection('about');
+const photo = resolveImage(about.photo);
+const bio = paragraphs(about.bio);
+const education = about.education.filter((item) => item.title);
+const path = about.path.filter((step) => step.title || step.text);
+---
+
+<section id="chi-sono" class="section about" tabindex="-1" aria-labelledby={about.title ? 'about-title' : undefined}>
+  <div class="container">
+    <div class="about__intro">
+      <div class="section-head about__head">
+        {about.label && <p class="tag tag--lit" data-reveal>{about.label}</p>}
+        {about.title && <Heading id="about-title" text={about.title} />}
+      </div>
+
+      {
+        photo && (
+          <div class="about__visual" data-reveal>
+            <Image
+              src={photo}
+              alt={about.photo_alt}
+              widths={[300, 380, 560, 720]}
+              sizes="(width >= 60rem) 23rem, 20rem"
+              class="about__photo"
+            />
+          </div>
+        )
+      }
+
+      <div class="about__story">
+        {
+          bio.length > 0 && (
+            <div class="about__bio">
+              {bio.map((paragraph, index) => (
+                <p data-reveal style={`--order: ${index}`}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )
+        }
+
+        {
+          education.length > 0 && (
+            <div class="about__education" data-reveal>
+              {about.education_title && <h3 class="about__minor" set:html={emphasize(about.education_title)} />}
+              <ul class="degrees" role="list">
+                {education.map((item) => {
+                  const meta = [item.institution, item.year].filter(Boolean).join(' · ');
+                  return (
+                    <li class="degree">
+                      <span class="degree__icon">
+                        <Icon name="graduation-cap" size={20} />
+                      </span>
+                      <span class="degree__text">
+                        <span class="degree__title">{item.title}</span>
+                        {meta && <span class="degree__meta">{meta}</span>}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    {
+      path.length > 0 && (
+        <div class="about__path">
+          {about.path_title && <Heading as="h3" class="about__path-title" text={about.path_title} />}
+          <div class="about__root">
+            <Mark name="sunrise" class="root__sun" />
+            <ol class="root" role="list" data-reveal="fade">
+              {path.map((step, index) => (
+                <li
+                  class:list={['root__step', index % 2 ? 'root__step--right' : 'root__step--left']}
+                  style={`--row: ${index + 1}`}
+                  data-reveal
+                >
+                  <span class="root__node" aria-hidden="true">
+                    {step.kind && <Icon name={kindIcons[step.kind]} size={18} />}
+                  </span>
+                  <div class="root__body">
+                    {step.year && <p class="root__year">{step.year}</p>}
+                    {step.title && <p class="root__title">{step.title}</p>}
+                    {step.text && <p class="root__text">{step.text}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* Phones: title, photo, story */
+  .about__intro {
+    display: grid;
+    grid-template-areas:
+      'head'
+      'visual'
+      'story';
+    gap: var(--space-2xl);
+  }
+
+  .about__head {
+    grid-area: head;
+  }
+
+  /* The photo: soft and small, because the source is (MEDIA-01); a hairline frame echoes the hero's ring */
+  .about__visual {
+    grid-area: visual;
+    position: relative;
+    width: min(100%, 20rem);
+    margin: var(--space-sm);
+  }
+
+  .about__visual::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--space-sm));
+    border: var(--line-thin) solid var(--line);
+    border-radius: calc(var(--radius-xl) + var(--space-sm));
+    pointer-events: none;
+  }
+
+  .about__photo {
+    width: 100%;
+    aspect-ratio: 36 / 49;
+    object-fit: cover;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+  }
+
+  .about__story {
+    grid-area: story;
+    display: grid;
+    gap: var(--space-xl);
+    align-content: start;
+  }
+
+  .about__bio {
+    display: grid;
+    gap: var(--space-md);
+    max-width: var(--measure);
+  }
+
+  .about__bio p:first-child {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  .about__education {
+    display: grid;
+    gap: var(--space-md);
+    max-width: var(--measure);
+  }
+
+  .about__minor {
+    font-size: var(--text-lg);
+  }
+
+  .degrees {
+    display: grid;
+    gap: var(--space-sm);
+    list-style: none;
+  }
+
+  .degree {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-sm);
+    border: var(--line-thin) solid var(--line-soft);
+    border-radius: var(--radius-pill);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .degree__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: var(--color-peach-light);
+    color: var(--mark);
+  }
+
+  .degree__text {
+    display: grid;
+    line-height: var(--leading-snug);
+  }
+
+  .degree__title {
+    color: var(--ink);
+    font-weight: var(--weight-medium);
+  }
+
+  .degree__meta {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* ---- the path, as a root ---- */
+
+  .about__path {
+    display: grid;
+    gap: var(--space-2xl);
+    margin-top: var(--space-3xl);
+  }
+
+  .about__path-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-light);
+    letter-spacing: var(--tracking-display);
+  }
+
+  /*
+   * Phones: the root runs down the left edge and every step hangs from it.
+   * --node is the circle on the root (set on the wrapper, so the sun can centre on it too);
+   * --reach is how far the rootlet travels to the text.
+   */
+  .about__root {
+    --node: 2.5rem;
+    display: grid;
+  }
+
+  /*
+   * The sun on the horizon the root grows from; its horizon is the mark's last pixel row, so the
+   * root starts right under it. On phones it is smaller, centred on the root at the left edge, so
+   * it stays inside the narrowest gutter; its strokes keep the same weight.
+   */
+  .root__sun {
+    --sun-width: 4rem;
+    width: var(--sun-width);
+    height: auto;
+    margin-left: calc(var(--node) / 2 - var(--sun-width) / 2);
+    color: var(--mark);
+  }
+
+  .root__sun :global(path) {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .root {
+    --reach: var(--space-md);
+    position: relative;
+    display: grid;
+    gap: var(--space-xl);
+    /* Room between the horizon and the first rootlet, which peels off a little above its node */
+    padding-top: var(--space-lg);
+    list-style: none;
+  }
+
+  /* The root itself: one hairline growing down from the horizon, tapering off past the last step */
+  .root::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--node) / 2);
+    border-left: var(--line-thin) solid var(--line);
+    transform-origin: top;
+    mask-image: linear-gradient(to bottom, black calc(100% - 4rem), transparent);
+  }
+
+  .root__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--node) minmax(0, 1fr);
+    column-gap: var(--reach);
+    align-items: start;
+  }
+
+  .root__node {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    border: var(--line-thin) solid var(--line);
+    border-radius: 50%;
+    background: var(--color-cream);
+    color: var(--mark);
+  }
+
+  /* Where the path is today shines a little: the root has reached the light */
+  .root__step:last-child .root__node {
+    border-color: var(--color-golden);
+    background: var(--color-peach-light);
+    box-shadow: var(--ring-golden), var(--glow-golden);
+  }
+
+  .root__body {
+    display: grid;
+    gap: var(--space-2xs);
+    justify-items: start;
+    padding-top: var(--space-2xs);
+  }
+
+  .root__year {
+    padding: 0.125rem var(--space-sm);
+    border-radius: var(--radius-pill);
+    background: var(--color-peach-light);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .root__title {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .root__text {
+    font-size: var(--text-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+     * The root grows once, top to bottom, when the path comes into view. It is not tied to the
+     * scroll: stopping halfway would leave the lower rootlets hanging in the air.
+     */
+    :global(.js) .root::before {
+      transform: scaleY(0);
+      transition: transform var(--duration-grow) var(--ease-in-out);
+    }
+
+    :global(.js) .root:global(.is-visible)::before {
+      transform: none;
+    }
+  }
+
+  @media (width >= 60rem) {
+    /* Wide screens: the photo beside the title and the story */
+    .about__intro {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        'visual head'
+        'visual story';
+      gap: var(--space-xl) clamp(var(--space-2xl), 7vw, 7rem);
+    }
+
+    .about__visual {
+      align-self: center;
+      width: 23rem;
+    }
+
+    .about__path {
+      justify-items: center;
+      margin-top: var(--space-section);
+      text-align: center;
+    }
+
+    /*
+     * Wide screens: the root runs down the middle and the steps branch to either side, each
+     * starting halfway down the previous one, so the two sides interleave. A rootlet peels off
+     * the root with a soft curve and reaches the step's node.
+     */
+    .about__root {
+      justify-items: center;
+      width: 100%;
+    }
+
+    /* Centred over the root in the middle, at the mark's own size */
+    .root__sun {
+      width: auto;
+      margin-left: 0;
+    }
+
+    .root {
+      --reach: clamp(var(--space-xl), 4vw, 3.5rem);
+      --curve: 1.75rem;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0 calc(2 * var(--reach));
+      width: 100%;
+      max-width: 64rem;
+      padding-top: var(--space-2xl);
+      text-align: start;
+    }
+
+    .root::before {
+      left: calc(50% - var(--line-thin) / 2);
+    }
+
+    .root__step {
+      grid-row: var(--row) / span 2;
+      column-gap: var(--space-md);
+      padding-bottom: var(--space-xl);
+    }
+
+    .root__step--left {
+      grid-column: 1;
+      grid-template-columns: minmax(0, 1fr) var(--node);
+      text-align: end;
+    }
+
+    .root__step--left .root__node {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .root__step--left .root__body {
+      grid-column: 1;
+      grid-row: 1;
+      justify-items: end;
+    }
+
+    .root__step--right {
+      grid-column: 2;
+    }
+
+    .root__step::after {
+      content: '';
+      position: absolute;
+      top: calc(var(--node) / 2 - var(--curve));
+      width: var(--reach);
+      height: var(--curve);
+      border-bottom: var(--line-thin) solid var(--line);
+    }
+
+    .root__step--left::after {
+      right: calc(-1 * var(--reach));
+      border-right: var(--line-thin) solid var(--line);
+      border-bottom-right-radius: var(--curve);
+    }
+
+    .root__step--right::after {
+      left: calc(-1 * var(--reach));
+      border-left: var(--line-thin) solid var(--line);
+      border-bottom-left-radius: var(--curve);
+    }
+  }
+</style>

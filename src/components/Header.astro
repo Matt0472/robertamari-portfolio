@@ -1,0 +1,442 @@
+---
+import { withBase } from '../lib/paths';
+/*
+ * Header: clear over the dawn of the opening, frosted once the page moves. On wide screens the
+ * links, Instagram and the one recurring action; on phones a menu sheet (A11Y-08).
+ */
+import Icon from './Icon.astro';
+import Mark from './Mark.astro';
+import NewTabHint from './NewTabHint.astro';
+import { getNavigation, getSection, instagramHandle } from '../lib/content';
+
+const settings = await getSection('settings');
+const navigation = await getNavigation();
+---
+
+<header class="header" data-header>
+  <div class="container header__bar">
+    <a class="header__name" href={withBase('/')} data-menu-outside>
+      <Mark name="sunrise" class="header__mark" reveal={false} />
+      <span>{settings.name}</span>
+    </a>
+
+    <button class="header__toggle" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-toggle>
+      <Icon name="menu" size={24} class="header__toggle-open" />
+      <Icon name="x" size={24} class="header__toggle-close" />
+      <span class="sr-only">Menu</span>
+    </button>
+
+    {/* data-lenis-prevent: the open sheet scrolls natively while Lenis is paused */}
+    <nav id="site-menu" class="header__menu" aria-label="Principale" data-menu data-lenis-prevent>
+      <ul class="header__links" role="list">
+        {
+          navigation.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="header__actions">
+        {
+          settings.instagram && (
+            <a class="header__social" href={settings.instagram} target="_blank" rel="noopener">
+              <Icon name="instagram" size={20} />
+              <span class="header__social-handle">
+                <span class="sr-only">Instagram: </span>
+                {instagramHandle(settings.instagram)}
+              </span>
+              <NewTabHint />
+            </a>
+          )
+        }
+        <a class="button header__contact" href={withBase('/#contatti')}>{settings.contact_button}</a>
+      </div>
+    </nav>
+  </div>
+  <span class="header__day" aria-hidden="true"></span>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle = header?.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = header?.querySelector<HTMLElement>('[data-menu]');
+  type Scroller = { stop: () => void; start: () => void };
+  // Lenis, when it runs (Base.astro), is paused while the menu is open.
+  const lenis = () => (window as unknown as { lenis?: Partial<Scroller> }).lenis;
+
+  // Frosted once the page has moved: a passive listener that only switches a class (CODE-10).
+  if (header) {
+    const update = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+  }
+
+  // Mobile menu (A11Y-08): Esc closes it, focus stays inside, the rest of the page is inert.
+  if (header && toggle && menu) {
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+    const outside = () => [
+      ...Array.from(document.body.children).filter((element) => element !== header),
+      ...Array.from(header.querySelectorAll('[data-menu-outside]')),
+    ];
+    const focusables = () => [toggle, ...Array.from(menu.querySelectorAll<HTMLElement>('a[href], button'))];
+
+    const setOpen = (open: boolean, returnFocus = false) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      header.toggleAttribute('data-open', open);
+      document.documentElement.classList.toggle('menu-open', open);
+      for (const element of outside()) (element as HTMLElement).inert = open;
+      if (open) {
+        lenis()?.stop?.();
+        menu.querySelector<HTMLElement>('a[href]')?.focus();
+      } else {
+        lenis()?.start?.();
+        if (returnFocus) toggle.focus();
+      }
+    };
+
+    toggle.addEventListener('click', () => setOpen(!isOpen()));
+
+    // Following a link closes the menu first, so the page is no longer inert when it scrolls.
+    menu.addEventListener('click', (event) => {
+      if (isOpen() && (event.target as Element).closest('a')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (!isOpen()) return;
+      if (event.key === 'Escape') {
+        setOpen(false, true);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = focusables();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Growing past the breakpoint with the menu open must not leave the page inert.
+    window.matchMedia('(width >= 60rem)').addEventListener('change', (event) => {
+      if (event.matches && isOpen()) setOpen(false);
+    });
+  }
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+  }
+
+  /* The frosted ground, on its own layer so it can fade in once the page moves (CODE-07) */
+  .header::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-bottom: var(--line-thin) solid var(--line-soft);
+    background: color-mix(in srgb, var(--color-cream) 82%, transparent);
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    transition: opacity var(--duration-slow) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .header.is-scrolled::before {
+    opacity: 1;
+  }
+
+  /* Focus moving into the sticky header must not scroll the page under it (A11Y-05) */
+  .header :is(a, button) {
+    scroll-margin-top: calc(-1 * (var(--header-height) + var(--space-lg)));
+  }
+
+  .header__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs) var(--space-xl);
+    min-height: var(--header-height);
+  }
+
+  .header__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    min-height: var(--target-min);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-display);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* The small sun on the horizon: shown at its drawn size, scaled down to sit beside the name */
+  .header__mark {
+    width: 2.25rem;
+    height: auto;
+    color: var(--mark);
+    stroke-width: calc(var(--mark-stroke) * 2.4); /* the drawing is scaled to ~40%: this keeps the hairline */
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .header__name:hover .header__mark {
+    transform: translateY(-2px);
+  }
+
+  .header__toggle {
+    display: none;
+  }
+
+  .header__menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs) var(--space-xl);
+  }
+
+  .header__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-lg);
+    list-style: none;
+  }
+
+  .header__links a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* A short ember line grows from the centre under the hovered link */
+  .header__links a::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.55rem;
+    border-top: var(--line-thin) solid var(--mark);
+    transform: scaleX(0);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .header__links a:hover {
+    color: var(--ink);
+  }
+
+  .header__links a:hover::after {
+    transform: scaleX(1);
+  }
+
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .header__social {
+    display: inline-grid;
+    place-items: center;
+    width: var(--target-min);
+    height: var(--target-min);
+    border-radius: 50%;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .header__social:hover {
+    background: var(--color-peach-light);
+    color: var(--mark);
+  }
+
+  .header__social:focus-visible {
+    border-radius: 50%;
+  }
+
+  .header__social-handle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .header__contact {
+    min-height: var(--target-min);
+    padding-inline: var(--space-lg);
+  }
+
+  /* The day passing: a golden hairline that fills as the page is read (progressive, CODE-10) */
+  .header__day {
+    position: absolute;
+    inset: auto 0 -1px;
+    display: none;
+    height: var(--line-thick);
+    background: linear-gradient(90deg, var(--color-golden), var(--color-ember-light), var(--color-ember));
+    transform-origin: left;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .header.is-scrolled .header__day {
+        display: block;
+        animation: day-passing linear both;
+        animation-timeline: scroll(root);
+      }
+    }
+  }
+
+  @keyframes day-passing {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @media (width < 60rem) {
+    /* Without JavaScript the links simply wrap under the name, and the header is not sticky. */
+    :global(html:not(.js)) .header {
+      position: static;
+    }
+
+    :global(.js) .header__toggle {
+      display: inline-grid;
+      place-items: center;
+      width: var(--target-min);
+      height: var(--target-min);
+      margin-inline-end: calc(-1 * var(--space-xs));
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    :global(.js) .header__toggle:hover {
+      background: var(--color-peach-light);
+    }
+
+    :global(.js) .header__toggle:focus-visible {
+      border-radius: 50%;
+    }
+
+    .header__toggle-close,
+    .header[data-open] .header__toggle-open {
+      display: none;
+    }
+
+    .header[data-open] .header__toggle-close {
+      display: block;
+    }
+
+    .header[data-open] {
+      background: var(--color-cream);
+    }
+
+    :global(.js) .header__menu {
+      display: none;
+    }
+
+    /* Open: a soft sheet under the bar; the rest of the page is inert behind it. */
+    :global(.js) .header[data-open] .header__menu {
+      position: fixed;
+      inset: var(--header-height) 0 0;
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: var(--space-2xl);
+      padding: var(--space-lg) var(--gutter) var(--space-2xl);
+      overflow-y: auto;
+      background: linear-gradient(var(--color-cream), var(--color-peach-light));
+      border-top: var(--line-thin) solid var(--line-soft);
+    }
+
+    .header[data-open] .header__links {
+      flex-direction: column;
+      flex-wrap: nowrap;
+    }
+
+    .header[data-open] .header__links a {
+      display: flex;
+      min-height: calc(var(--target-min) + var(--space-md));
+      border-bottom: var(--line-thin) solid var(--line-soft);
+      color: var(--ink);
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-light);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .header[data-open] .header__links a::after {
+      display: none;
+    }
+
+    .header[data-open] .header__actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-md);
+    }
+
+    .header[data-open] .header__contact {
+      min-height: 3.25rem;
+      font-size: var(--text-base);
+    }
+
+    /* In the sheet the handle is written out beside the icon */
+    .header[data-open] .header__social {
+      display: inline-flex;
+      gap: var(--space-xs);
+      width: auto;
+      justify-content: center;
+      border-radius: var(--radius-pill);
+      font-weight: var(--weight-medium);
+    }
+
+    .header[data-open] .header__social-handle {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      :global(.js) .header[data-open] .header__menu {
+        animation: sheet-in var(--duration-slow) var(--ease-out);
+      }
+    }
+  }
+
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.75rem);
+    }
+  }
+
+  :global(html.menu-open) {
+    overflow: hidden;
+  }
+</style>

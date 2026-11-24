@@ -1,0 +1,201 @@
+---
+import { withBase } from '../lib/paths';
+/* The ground under the evening: the roots under the horizon, the name, the ways to reach her. */
+import { getEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import Mark from './Mark.astro';
+import NewTabHint from './NewTabHint.astro';
+import { getNavigation, getSection, instagramHandle } from '../lib/content';
+
+const settings = await getSection('settings');
+const navigation = await getNavigation();
+const privacy = await getEntry('pages', 'privacy');
+const year = new Date().getFullYear();
+---
+
+<footer class="footer evening">
+  <div class="container">
+    <Mark name="roots" class="footer__roots" />
+
+    <div class="footer__grid">
+      <div class="footer__identity">
+        <p class="footer__name"><a href={withBase('/')}>{settings.name}</a></p>
+        {settings.role && <p>{settings.role}</p>}
+        {
+          settings.area && (
+            <p class="icon-line">
+              <Icon name="map-pin" size={18} />
+              <span>{settings.area}</span>
+            </p>
+          )
+        }
+      </div>
+
+      {
+        navigation.length > 0 && (
+          <nav aria-label="Sezioni del sito">
+            <ul class="footer__list" role="list">
+              {navigation.map((item) => (
+                <li>
+                  <a href={item.href}>{item.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+
+      {
+        (settings.email || settings.instagram) && (
+          <ul class="footer__list" role="list">
+            {settings.email && (
+              <li>
+                <a class="footer__contact" href={`mailto:${settings.email}`}>
+                  <Icon name="mail" size={18} />
+                  <span>{settings.email}</span>
+                </a>
+              </li>
+            )}
+            {settings.instagram && (
+              <li>
+                <a class="footer__contact" href={settings.instagram} target="_blank" rel="noopener">
+                  <Icon name="instagram" size={18} />
+                  <span>
+                    <span class="sr-only">Instagram: </span>
+                    {instagramHandle(settings.instagram)}
+                  </span>
+                  <NewTabHint />
+                </a>
+              </li>
+            )}
+          </ul>
+        )
+      }
+    </div>
+
+    <div class="footer__base">
+      <p>
+        {`© ${year} ${settings.name}`}
+        {settings.vat_number && <span>{` · P. IVA ${settings.vat_number}`}</span>}
+      </p>
+      {privacy && <p><a href={withBase('/privacy/')}>{privacy.data.title}</a></p>}
+      {/* Screen readers hear «Realizzato con amore da Mattia Pedone»: the heart is drawn, the word is read. */}
+      <p class="footer__credit">
+        {'Realizzato con '}<Icon name="heart" size={16} class="footer__heart" /><span class="sr-only">amore</span>{' da '}<a
+          href="https://mapped-dev.it"
+          target="_blank"
+          rel="noopener">Mattia Pedone<NewTabHint /></a
+        >
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    --mark: var(--color-golden); /* 5.6:1 on dusk: here it may carry text */
+    padding-block: var(--space-2xl) var(--space-xl);
+    background: var(--color-dusk);
+  }
+
+  /* The sun on the horizon with its roots: the page ends where the mark begins */
+  .footer__roots {
+    margin: 0 auto var(--space-2xl);
+    color: var(--mark);
+  }
+
+  .footer__grid {
+    display: grid;
+    gap: var(--space-xl);
+  }
+
+  .footer__identity {
+    display: grid;
+    gap: var(--space-xs);
+    align-content: start;
+    color: var(--text-muted);
+  }
+
+  .footer__name {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-light);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .footer__name a {
+    text-decoration: none;
+  }
+
+  .footer__name a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: var(--line-thin);
+  }
+
+  .footer__list {
+    display: grid;
+    align-content: start;
+    list-style: none;
+  }
+
+  .footer__list a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-height: var(--target-min);
+    color: var(--ink);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .footer__list a:hover {
+    color: var(--mark);
+  }
+
+  .footer__contact :global(.icon) {
+    color: var(--mark);
+  }
+
+  .footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-xl);
+    align-items: center;
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: var(--line-thin) solid var(--line);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .footer__base a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--ink);
+  }
+
+  .footer__credit {
+    margin-inline-start: auto;
+  }
+
+  .footer__heart {
+    display: inline-block;
+    vertical-align: -0.15em;
+    color: var(--mark);
+  }
+
+  @media (width >= 48rem) {
+    .footer__grid {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: var(--space-2xl);
+    }
+  }
+
+  @media (width < 48rem) {
+    .footer__credit {
+      margin-inline-start: 0;
+    }
+  }
+</style>

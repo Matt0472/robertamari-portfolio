@@ -1,0 +1,90 @@
+---
+import { withBase } from '../lib/paths';
+/*
+ * On phones the header keeps «Contattami» inside the menu: once the opening has scrolled away,
+ * this pill floats in the corner and leads to the form (DES-05). It steps aside while the
+ * contact section or the footer are in view. Wide screens have the header's own button.
+ */
+import Icon from './Icon.astro';
+import { getSection } from '../lib/content';
+
+const settings = await getSection('settings');
+---
+
+<a class="button floating" href={withBase('/#contatti')} data-floating>
+  <Icon name="mail" size={18} />
+  {settings.contact_button}
+</a>
+
+<script>
+  const floating = document.querySelector<HTMLElement>('[data-floating]');
+  const hero = document.querySelector('.hero');
+  const away = [document.getElementById('contatti'), document.querySelector('footer')].filter(
+    (element): element is HTMLElement => element !== null,
+  );
+
+  if (floating && hero && 'IntersectionObserver' in window) {
+    const visible = new Set<Element>();
+    const update = () => {
+      const show = !visible.has(hero) && !away.some((element) => visible.has(element));
+      floating.classList.toggle('is-shown', show);
+      floating.inert = !show;
+    };
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      }
+      update();
+    });
+    // Hidden until the first report: the opening is in view when the page loads.
+    floating.inert = true;
+    [hero, ...away].forEach((element) => observer.observe(element));
+  }
+</script>
+
+<style>
+  .floating {
+    display: none;
+  }
+
+  @media (width < 60rem) {
+    :global(.js) .floating {
+      position: fixed;
+      right: var(--gutter);
+      bottom: max(var(--space-md), env(safe-area-inset-bottom));
+      z-index: var(--z-float);
+      display: inline-flex;
+      box-shadow: var(--glow-ember-strong), var(--shadow-lg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(1rem) scale(0.96);
+      transition:
+        opacity var(--duration-slow) var(--ease-out),
+        transform var(--duration-slow) var(--ease-out),
+        visibility 0s linear var(--duration-slow);
+    }
+
+    :global(.js) .floating:global(.is-shown) {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition-delay: 0s;
+    }
+
+    :global(.js) .floating:global(.is-shown):hover {
+      transform: translateY(-2px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :global(.js) .floating {
+        transform: none;
+      }
+    }
+
+    /* Focused content scrolls clear of the floating pill */
+    :global(html.js) {
+      scroll-padding-bottom: var(--floating-clearance);
+    }
+  }
+</style>

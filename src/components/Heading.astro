@@ -1,0 +1,47 @@
+---
+/*
+ * A section title. The word in *asterisks* is set in italic ember (DES-09), and with motion the
+ * words rise one by one (DES-07). Words are split here, at build time, so nothing shifts when the
+ * reveal script runs; the spaces between them stay real text, so the title reads as one phrase.
+ */
+import { emphasisParts } from '../lib/emphasis';
+
+interface Props {
+  text: string;
+  as?: 'h1' | 'h2' | 'h3';
+  id?: string;
+  class?: string;
+  /** "intro" plays on load (the opening); "scroll" when the title enters the view. */
+  reveal?: 'scroll' | 'intro';
+  /** A text whose asterisks are literal (a name, the book's own title). */
+  literal?: boolean;
+}
+
+const { text, as: Tag = 'h2', id, class: className, reveal = 'scroll', literal = false } = Astro.props;
+
+let count = 0;
+const parts = (literal ? [{ text, emphasis: false }] : emphasisParts(text)).map((part) => ({
+  emphasis: part.emphasis,
+  tokens: part.text
+    .split(/(\s+)/)
+    .filter(Boolean)
+    .map((token) => (/^\s+$/.test(token) ? null : { word: token, index: count++ })),
+}));
+---
+
+<Tag id={id} class={className} data-reveal={reveal === 'scroll' ? 'words' : undefined} data-intro={reveal === 'intro' ? 'words' : undefined}>
+  {
+    parts.map((part) => {
+      const words = part.tokens.map((token) =>
+        token ? (
+          <span class="word" style={`--word: ${token.index}`}>
+            {token.word}
+          </span>
+        ) : (
+          ' '
+        ),
+      );
+      return part.emphasis ? <em>{words}</em> : words;
+    })
+  }
+</Tag>

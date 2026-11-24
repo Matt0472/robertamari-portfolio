@@ -1,0 +1,46 @@
+label: Il libro
+title: Il richiamo delle lanterne
+subtitle: Una fiaba illustrata sull'arrivo dell'inverno, sulla paura e sull'amicizia.
+photo: /images/libro-in-mano.jpg
+photo_alt: >-
+  Una mano tiene una copia de «Il richiamo delle lanterne»: in copertina un riccio
+  e una volpe accanto a una lanterna accesa
+plot: |-
+  In un bosco che si prepara all'inverno vivono due amici: Belgiorno, un riccio curioso che fa domande su tutto, e Stellafiore, una volpe saggia e gentile.
+
+  Le giornate si accorciano, il freddo si fa sentire e Belgiorno comincia ad avere paura. Allora Stellafiore lo accompagna ai piedi di una vecchia quercia, dove è nascosta una piccola lanterna di vetro, antica e bellissima.
+
+  Da quella luce comincia una scoperta preziosa, per i piccoli lettori e per i grandi che leggono con loro.
+characters_title: I personaggi
+characters:
+  - name: Belgiorno
+    description: Un riccio curioso, che fa domande su tutto e ha paura dell'inverno che arriva.
+  - name: Stellafiore
+    description: Una volpe saggia e gentile, che conosce i segreti del bosco.
+quote: ""
+values_title: I quattro valori che tengono accesa la *lanterna*
+values:
+  - title: Gratitudine
+    text: Accorgersi ogni giorno delle cose belle che ci succedono. Qual è stata la tua pozzanghera di oggi?
+  - title: Gentilezza
+    text: Quante cose belle fai per la natura e per gli altri, senza che nessuno ti veda?
+  - title: Amore per sé stessi
+    text: Te lo dici che sei importante?
+  - title: Rispetto
+    text: Per sé stessi, per gli altri e per tutto ciò che ci circonda. Hai provato a dire no, quando qualcosa non ti fa stare bene?
+origin_title: Com'è nato
+origin_text: >-
+  Nel 2025, insieme a un gruppo di famiglie, ho fondato una comunità educante.
+  Cercavo una storia per presentare il progetto ai bambini e, non trovandola, ho
+  deciso di scriverla io.
+publisher: Gruppo Albatros Il Filo
+isbn: "9791223619445"
+purchase_title: Dove acquistarlo
+purchase_links:
+  - label: Acquista su Amazon
+    url: https://www.amazon.it/dp/B0GWKJ7TJS
+purchase_note: Oppure chiedilo nella tua libreria di fiducia.
+cover: /images/copertina.jpg
+cover_alt: >-
+  La copertina de «Il richiamo delle lanterne»: un riccio e una volpe sotto un cielo
+  stellato, accanto a una lanterna accesa.

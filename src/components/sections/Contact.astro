@@ -1,0 +1,738 @@
+---
+import { withBase } from '../../lib/paths';
+/*
+ * Contact, the evening: the lantern is lit. The invitation and the email button on the ember
+ * ground; the short form on a light card that glows from behind. Only form and email, never
+ * phone or WhatsApp (DES-05). The form posts natively without JavaScript; with it, it validates
+ * inline and sends as JSON to the worker (worker/index.ts), which answers { ok } or
+ * { ok: false, error, message }.
+ */
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import NewTabHint from '../NewTabHint.astro';
+import { getSection } from '../../lib/content';
+import { emphasize } from '../../lib/emphasis';
+
+const contact = await getSection('contact');
+const settings = await getSection('settings');
+const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
+const interests = contact.interests.filter(Boolean);
+const emailHref = settings.email ? `mailto:${settings.email}` : '';
+---
+
+<section
+  id="contatti"
+  class="section section--rise contact evening"
+  tabindex="-1"
+  aria-labelledby={contact.title ? 'contact-title' : undefined}
+>
+  <div class="container contact__grid">
+    <div class="contact__intro">
+      <div class="section-head">
+        {contact.label && <p class="tag tag--lit" data-reveal>{contact.label}</p>}
+        {contact.title && <Heading id="contact-title" text={contact.title} />}
+      </div>
+      {contact.text && <p class="lead" data-reveal>{contact.text}</p>}
+      {
+        emailHref && contact.email_button && (
+          <p data-reveal>
+            <a class="button button--ghost" href={emailHref}>
+              <Icon name="mail" size={20} />
+              {contact.email_button}
+            </a>
+          </p>
+        )
+      }
+      {
+        settings.area && (
+          <p class="icon-line contact__area" data-reveal>
+            <Icon name="map-pin" size={18} />
+            <span>{settings.area}</span>
+          </p>
+        )
+      }
+    </div>
+
+    <div class="contact__lantern" data-reveal>
+      <div class="contact__card daylight">
+        {contact.form_title && <h3 class="contact__form-title" set:html={emphasize(contact.form_title)} />}
+
+        <form
+          class="form"
+          action={withBase('/api/contatto')}
+          method="post"
+          data-contact-form
+          data-email-href={emailHref}
+          data-email-label={contact.email_button}
+        >
+          <p class="form__legend" aria-hidden="true">* campo obbligatorio</p>
+
+          <div class="form__trap" aria-hidden="true">
+            <label for="contact-website">Non compilare questo campo</label>
+            <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="contact-name">Nome <span aria-hidden="true">*</span></label>
+              <input id="contact-name" name="name" type="text" autocomplete="name" maxlength="120" required />
+              <p class="field__error" id="contact-name-error" data-error hidden>
+                <Icon name="circle-alert" size={18} /><span></span>
+              </p>
+            </div>
+            <div class="field">
+              <label for="contact-email">Email <span aria-hidden="true">*</span></label>
+              <input
+                id="contact-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                inputmode="email"
+                spellcheck="false"
+                maxlength="200"
+                required
+              />
+              <p class="field__error" id="contact-email-error" data-error hidden>
+                <Icon name="circle-alert" size={18} /><span></span>
+              </p>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="contact-organization">
+                Scuola o ente <span class="field__optional">(facoltativo)</span>
+              </label>
+              <input
+                id="contact-organization"
+                name="organization"
+                type="text"
+                autocomplete="organization"
+                maxlength="200"
+              />
+            </div>
+            {
+              interests.length > 0 && (
+                <div class="field">
+                  <label for="contact-interest">
+                    Cosa ti interessa <span class="field__optional">(facoltativo)</span>
+                  </label>
+                  <div class="field__select">
+                    <select id="contact-interest" name="interest">
+                      <option value="">Scegli un'opzione</option>
+                      {interests.map((interest) => (
+                        <option>{interest}</option>
+                      ))}
+                    </select>
+                    <Icon name="chevron-down" size={20} class="field__chevron" />
+                  </div>
+                </div>
+              )
+            }
+          </div>
+
+          <div class="field">
+            <label for="contact-message">Messaggio <span aria-hidden="true">*</span></label>
+            {/* data-lenis-prevent: a long message scrolls inside the field, not the page */}
+            <textarea id="contact-message" name="message" rows="5" maxlength="5000" required data-lenis-prevent
+            ></textarea>
+            <p class="field__error" id="contact-message-error" data-error hidden>
+              <Icon name="circle-alert" size={18} /><span></span>
+            </p>
+          </div>
+
+          <div class="field field--check">
+            <div class="field__check">
+              <input id="contact-privacy" name="privacy" type="checkbox" value="yes" required />
+              <label for="contact-privacy">
+                Ho letto l'<a href={withBase('/privacy/')} target="_blank" rel="noopener"
+                  >informativa sulla privacy<NewTabHint /></a
+                > e acconsento
+                al trattamento dei miei dati per ricevere una risposta. <span aria-hidden="true">*</span>
+              </label>
+            </div>
+            <p class="field__error" id="contact-privacy-error" data-error hidden>
+              <Icon name="circle-alert" size={18} /><span></span>
+            </p>
+          </div>
+
+          {turnstileKey && <div class="cf-turnstile" data-sitekey={turnstileKey} data-language="it" />}
+
+          <div class="form__actions">
+            <button class="button form__submit" type="submit" data-submit>
+              <Icon name="loader-circle" size={18} class="form__spinner" />
+              <span data-submit-label>{contact.submit_label}</span>
+            </button>
+            {contact.privacy_note && <p class="form__note">{contact.privacy_note}</p>}
+          </div>
+
+          <div class="form__status" role="status" data-status>
+            <Icon name="circle-alert" size={20} class="form__status-icon" />
+            <p data-status-text></p>
+          </div>
+        </form>
+
+        <div class="form__sent" data-sent hidden>
+          <span class="form__sent-light" aria-hidden="true">
+            <Icon name="circle-check" size={28} />
+          </span>
+          <p tabindex="-1" data-sent-text>{contact.success_message || 'Messaggio inviato.'}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{turnstileKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
+
+<script>
+  import { EMAIL_RE } from '../../lib/email';
+
+  type Result = { ok: true } | { ok: false; error: string; message: string };
+  type Field = HTMLInputElement | HTMLTextAreaElement;
+
+
+  // Each message says what is wrong and how to fix it (A11Y-12).
+  const problems: Record<string, (field: Field) => string> = {
+    name: (field) => (field.value.trim() ? '' : 'Manca il nome: scrivi come ti chiami.'),
+    email: (field) => {
+      const value = field.value.trim();
+      if (!value) return "Manca l'email: scrivi l'indirizzo a cui vuoi la risposta.";
+      return EMAIL_RE.test(value)
+        ? ''
+        : "L'email non è completa: controlla la chiocciola e la parte finale, per esempio nome@scuola.it.";
+    },
+    message: (field) => (field.value.trim() ? '' : 'Manca il messaggio: scrivi in poche righe che cosa ti serve.'),
+    privacy: (field) =>
+      (field as HTMLInputElement).checked ? '' : 'Serve il tuo consenso: spunta la casella per poter inviare.',
+  };
+
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  const sent = document.querySelector<HTMLElement>('[data-sent]');
+
+  if (form && sent) {
+    // Native validation stays on without JavaScript; here the inline messages replace it.
+    form.noValidate = true;
+
+    const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const submitLabel = form.querySelector<HTMLElement>('[data-submit-label]')!;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const statusText = form.querySelector<HTMLElement>('[data-status-text]')!;
+    const idleLabel = submitLabel.textContent ?? '';
+    const fields = Object.keys(problems)
+      .map((name) => form.elements.namedItem(name))
+      .filter((field): field is Field => field instanceof HTMLElement);
+    let attempted = false;
+    let busy = false;
+
+    const errorOf = (field: HTMLElement) =>
+      field.closest('.field')?.querySelector<HTMLElement>('[data-error]') ?? null;
+
+    const setError = (field: Field, message: string) => {
+      const error = errorOf(field);
+      if (!error) return;
+      error.querySelector('span')!.textContent = message;
+      error.hidden = !message;
+      field.closest('.field')?.toggleAttribute('data-invalid', Boolean(message));
+      if (message) {
+        field.setAttribute('aria-invalid', 'true');
+        field.setAttribute('aria-describedby', error.id);
+      } else {
+        field.removeAttribute('aria-invalid');
+        field.removeAttribute('aria-describedby');
+      }
+    };
+
+    const check = (field: Field) => {
+      const message = problems[field.name](field);
+      setError(field, message);
+      return !message;
+    };
+
+    const setStatus = (tone: 'busy' | 'error' | null, message = '', withEmail = false) => {
+      if (tone) status.dataset.tone = tone;
+      else delete status.dataset.tone;
+      statusText.textContent = message;
+      const href = form.dataset.emailHref;
+      const label = form.dataset.emailLabel;
+      if (withEmail && href && label) {
+        const link = document.createElement('a');
+        link.href = href;
+        link.textContent = label;
+        statusText.append(' ', link);
+      }
+    };
+
+    // Once every field is right again, the summary asking to fix them goes away.
+    const settle = () => {
+      if (status.dataset.tone === 'error' && fields.every((field) => field.getAttribute('aria-invalid') !== 'true')) {
+        setStatus(null);
+      }
+    };
+
+    // After the first attempt, a corrected field loses its error as soon as it is right.
+    for (const field of fields) {
+      const event = field.type === 'checkbox' ? 'change' : 'input';
+      field.addEventListener(event, () => {
+        if (attempted && field.getAttribute('aria-invalid') === 'true') {
+          check(field);
+          settle();
+        }
+      });
+      field.addEventListener('blur', () => {
+        if (!attempted) return;
+        check(field);
+        settle();
+      });
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (busy) return;
+      attempted = true;
+
+      const invalid = fields.filter((field) => !check(field));
+      if (invalid.length > 0) {
+        setStatus('error', invalid.length === 1 ? 'Correggi il campo segnalato.' : 'Correggi i campi segnalati.');
+        invalid[0].focus();
+        return;
+      }
+
+      busy = true;
+      submit.setAttribute('aria-disabled', 'true');
+      submitLabel.textContent = 'Invio in corso…';
+      setStatus('busy', 'Invio in corso…');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        const result = (await response.json().catch(() => null)) as Result | null;
+
+        if (result?.ok) {
+          form.reset();
+          setStatus(null);
+          form.hidden = true;
+          sent.hidden = false;
+          sent.querySelector<HTMLElement>('[data-sent-text]')?.focus();
+          return;
+        }
+
+        if (!result) {
+          // No endpoint at all (a static preview without the worker): retrying would not help
+          const noEndpoint = response.status === 404 || response.status === 405;
+          setStatus(
+            'error',
+            noEndpoint
+              ? "L'invio dal sito non è ancora attivo. Scrivimi direttamente via email."
+              : 'Invio non riuscito: riprova tra poco o scrivimi direttamente.',
+            true,
+          );
+        } else if (result.error === 'privacy') {
+          const privacy = form.elements.namedItem('privacy') as HTMLInputElement;
+          setError(privacy, problems.privacy(privacy));
+          setStatus('error', result.message);
+        } else {
+          const offerEmail = ['not_configured', 'send', 'request'].includes(result.error);
+          setStatus('error', result.message, offerEmail);
+        }
+      } catch {
+        setStatus('error', 'Invio non riuscito: controlla la connessione e riprova, oppure scrivimi direttamente.', true);
+      } finally {
+        busy = false;
+        submit.removeAttribute('aria-disabled');
+        submitLabel.textContent = idleLabel;
+        (window as Window & { turnstile?: { reset: () => void } }).turnstile?.reset();
+      }
+    });
+  }
+</script>
+
+<style>
+  .contact {
+    --tint: var(--tint-evening);
+    background:
+      radial-gradient(
+        ellipse 60% 50% at 18% 0%,
+        color-mix(in srgb, var(--color-ember-light) 45%, transparent),
+        transparent 70%
+      ),
+      var(--tint);
+    padding-bottom: var(--space-section);
+  }
+
+  .contact__grid {
+    display: grid;
+    gap: var(--space-3xl);
+  }
+
+  .contact__intro {
+    display: grid;
+    gap: var(--space-xl);
+    align-content: start;
+    justify-items: start;
+  }
+
+  .contact__intro .lead {
+    color: var(--text);
+  }
+
+  .contact__area {
+    color: var(--text);
+  }
+
+  /* The lantern: the card glows from behind, warm gold fading into the evening */
+  .contact__lantern {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* The halo reaches past the card's edges: golden close to it, ember further out */
+  .contact__lantern::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -6% -10%;
+    background: radial-gradient(
+      closest-side,
+      var(--color-golden),
+      color-mix(in srgb, var(--color-golden) 70%, transparent) 62%,
+      color-mix(in srgb, var(--color-ember-light) 40%, transparent) 80%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .contact__card {
+    display: grid;
+    gap: var(--space-lg);
+    padding: var(--space-xl) var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .contact__form-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-light);
+    letter-spacing: var(--tracking-display);
+  }
+
+  /* Margins instead of a gap, so the empty status region at the end takes no space. */
+  .form {
+    container-type: inline-size;
+    display: grid;
+  }
+
+  .form > * + * {
+    margin-top: var(--space-lg);
+  }
+
+  .form > .form__status:not([data-tone]) {
+    margin-top: 0;
+  }
+
+  .form__legend {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .form__trap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .form__row {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .field {
+    display: grid;
+    gap: var(--space-xs);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .field label {
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .field__optional {
+    color: var(--text-muted);
+    font-weight: var(--weight-regular);
+  }
+
+  .field input:not([type='checkbox']),
+  .field select,
+  .field textarea {
+    width: 100%;
+    min-height: 3rem;
+    padding: var(--space-sm) var(--space-md);
+    border: var(--line-thin) solid var(--color-control);
+    border-radius: var(--radius-sm);
+    background: var(--color-cream);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .field textarea {
+    min-height: 8rem;
+    resize: vertical;
+  }
+
+  .field input:not([type='checkbox']):hover,
+  .field select:hover,
+  .field textarea:hover {
+    border-color: var(--text-muted);
+    background: var(--color-paper);
+  }
+
+  .field input:not([type='checkbox']):focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible {
+    border-color: var(--color-ember);
+    background: var(--color-paper);
+    outline: var(--focus-width) solid var(--focus-color);
+    outline-offset: var(--line-thin);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--ring-golden);
+  }
+
+  /* Invalid: a doubled ember border and a message with an icon, never colour alone (A11Y-04). */
+  .field [aria-invalid='true']:not([type='checkbox']) {
+    border-color: var(--color-ember);
+    box-shadow: inset 0 0 0 var(--line-thin) var(--color-ember);
+  }
+
+  .field__select {
+    position: relative;
+  }
+
+  .field__select select {
+    appearance: none;
+    padding-inline-end: var(--space-2xl);
+    cursor: pointer;
+  }
+
+  .field__chevron {
+    position: absolute;
+    top: 50%;
+    right: var(--space-md);
+    color: var(--text-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .field__check {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-sm);
+    align-items: start;
+  }
+
+  .field__check input {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+    accent-color: var(--color-ember);
+    cursor: pointer;
+  }
+
+  .field__check label {
+    color: var(--text);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-snug);
+  }
+
+  .field__check a {
+    color: var(--mark);
+  }
+
+  /*
+   * An unchecked consent is marked by a tinted panel with an ember edge, which cannot be
+   * mistaken for the focus ring.
+   */
+  .field--check[data-invalid] .field__check {
+    padding: var(--space-sm) var(--space-md);
+    border-inline-start: var(--line-thick) solid var(--color-ember);
+    border-radius: var(--radius-sm);
+    background: var(--color-peach-light);
+  }
+
+  .field__error {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: flex-start;
+    color: var(--color-ember);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  .field__error :global(.icon) {
+    margin-top: 0.05em;
+  }
+
+  .form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-lg);
+    align-items: center;
+  }
+
+  .form__spinner {
+    display: none;
+  }
+
+  /* Sending: a turning ring before the label; the focus ring stays as it is */
+  .form__submit[aria-disabled='true'] {
+    cursor: progress;
+    background: var(--color-ember-deep);
+  }
+
+  .form__submit[aria-disabled='true'] .form__spinner {
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .form__submit[aria-disabled='true'] .form__spinner {
+      animation: spin var(--duration-spin) linear infinite;
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  .form__note {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .form__status {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: flex-start;
+    font-size: var(--text-sm);
+  }
+
+  .form__status[data-tone] {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-peach-light) 60%, transparent);
+  }
+
+  .form__status[data-tone='error'] {
+    border-inline-start: var(--line-thick) solid var(--color-ember);
+    background: var(--color-peach-light);
+    color: var(--ink);
+    font-weight: var(--weight-semibold);
+  }
+
+  .form__status :global(a) {
+    color: var(--mark);
+  }
+
+  .form__status-icon {
+    display: none;
+    margin-top: 0.1em;
+    color: var(--color-ember);
+  }
+
+  .form__status[data-tone='error'] .form__status-icon {
+    display: block;
+  }
+
+  .form__sent {
+    display: grid;
+    gap: var(--space-lg);
+    justify-items: start;
+    padding-block: var(--space-lg);
+  }
+
+  .form__sent-light {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--color-peach-light);
+    box-shadow: var(--glow-golden);
+    color: var(--color-ember);
+  }
+
+  .form__sent p {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  @container (width >= 30rem) {
+    .form__row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* The lantern lights when the card arrives, flickers once and settles (A11Y-07) */
+    :global(.js) .contact__lantern::before {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+
+    :global(.js) .contact__lantern:global(.is-visible)::before {
+      animation: lantern-light var(--duration-glow) var(--ease-out) var(--duration-base) both;
+    }
+  }
+
+  @keyframes lantern-light {
+    0% {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    45% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    60% {
+      opacity: 0.8;
+    }
+    75% {
+      opacity: 1;
+      transform: scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (width >= 40rem) {
+    .contact__card {
+      padding: var(--space-2xl);
+    }
+  }
+
+  @media (width >= 60rem) {
+    .contact__lantern::before {
+      inset: -18% -14%;
+    }
+
+    .contact__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: clamp(var(--space-2xl), 6vw, 6rem);
+      align-items: center;
+    }
+  }
+</style>

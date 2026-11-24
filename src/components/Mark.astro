@@ -1,0 +1,58 @@
+---
+/*
+ * Thin-line marks from the «Radici e Orizzonti» vocabulary (DES-02): a sun rising on the
+ * horizon, roots under it, a few birds. Decorative, drawn with one stroke; each viewBox is its
+ * display size, and every path has pathLength="1" so it can draw itself (data-reveal="draw").
+ */
+interface Props {
+  name: 'sunrise' | 'birds' | 'roots';
+  class?: string;
+  reveal?: boolean;
+}
+
+const { name, class: className, reveal = true } = Astro.props;
+const sizes = { sunrise: [88, 30], birds: [64, 26], roots: [176, 76] } as const;
+const [width, height] = sizes[name];
+---
+
+<svg
+  class:list={['mark', className]}
+  width={width}
+  height={height}
+  viewBox={`0 0 ${width} ${height}`}
+  aria-hidden="true"
+  focusable="false"
+  data-reveal={reveal ? 'draw' : undefined}
+>
+  {
+    name === 'sunrise' && (
+      <>
+        <path pathLength="1" d="M1 29 H87" />
+        <path pathLength="1" d="M26 29 A18 18 0 0 1 62 29" />
+        <path pathLength="1" d="M44 4 V8 M22 12 l3 3 M66 12 l-3 3 M12 22 h4 M76 22 h-4" />
+      </>
+    )
+  }
+  {
+    name === 'birds' && (
+      <>
+        <path pathLength="1" d="M2 14 q5 -6 10 0 q5 -6 10 0" />
+        <path pathLength="1" d="M30 6 q4 -5 8 0 q4 -5 8 0" />
+        <path pathLength="1" d="M48 20 q3 -4 6 0 q3 -4 6 0" />
+      </>
+    )
+  }
+  {
+    name === 'roots' && (
+      <>
+        <path pathLength="1" d="M2 28 H174" />
+        <path pathLength="1" d="M70 28 A18 18 0 0 1 106 28" />
+        <path pathLength="1" d="M88 28 C88 44 85 56 78 74" />
+        <path pathLength="1" d="M88 30 C90 44 96 54 108 64" />
+        <path pathLength="1" d="M87 36 C78 44 66 48 52 50" />
+        <path pathLength="1" d="M89 40 C98 46 112 48 126 47" />
+        <path pathLength="1" d="M86 48 C80 56 72 60 62 62" />
+      </>
+    )
+  }
+</svg>

@@ -1,0 +1,97 @@
+---
+/*
+ * Layout of the secondary pages (privacy, message sent, sending failed, 404): a short dawn
+ * opening with the sun on the horizon, then the text on a soft card.
+ */
+import Mark from './Mark.astro';
+
+interface Props {
+  title: string;
+  label?: string;
+}
+
+const { title, label } = Astro.props;
+---
+
+<section class="section page">
+  <div class="container page__inner">
+    <div class="page__head">
+      <Mark name="sunrise" class="page__mark" />
+      {label && <p class="tag tag--lit">{label}</p>}
+      <h1 class="page__title">{title}</h1>
+    </div>
+    <div class="page__body">
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .page {
+    min-height: 70svh;
+    padding-top: var(--space-2xl);
+  }
+
+  .page__inner {
+    display: grid;
+    gap: var(--space-2xl);
+    justify-items: center;
+  }
+
+  .page__head {
+    display: grid;
+    gap: var(--space-md);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .page__mark {
+    color: var(--mark);
+  }
+
+  .page__title {
+    max-width: 20ch;
+    font-size: var(--text-3xl);
+  }
+
+  .page__body {
+    display: grid;
+    gap: var(--space-md);
+    justify-items: start;
+    width: 100%;
+    max-width: 46rem;
+    padding: var(--space-xl) var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Markdown from the CMS (the privacy notice, the 404 text) */
+  .page__body :global(h2) {
+    margin-top: var(--space-lg);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-regular);
+    letter-spacing: normal;
+  }
+
+  .page__body :global(ul) {
+    display: grid;
+    gap: var(--space-xs);
+    padding-inline-start: var(--space-lg);
+  }
+
+  .page__body :global(a) {
+    color: var(--mark);
+  }
+
+  .page__body :global(.button) {
+    margin-top: var(--space-sm);
+    color: var(--color-cream);
+  }
+
+  @media (width >= 40rem) {
+    .page__body {
+      padding: var(--space-2xl) var(--space-3xl);
+    }
+  }
+</style>

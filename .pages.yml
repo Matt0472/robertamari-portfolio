@@ -1,0 +1,359 @@
+# Pages CMS configuration (https://pagescms.org).
+# Roberta signs in at https://app.pagescms.org with a GitHub account or as a collaborator invited by email.
+# Every save is a commit on GitHub, and Cloudflare republishes the site on its own.
+#
+# Every field here must match a key in src/content/ and in the schema in src/content.config.ts
+# (npm run check:cms). Names in English, labels and descriptions in Italian for Roberta.
+# Every image field has its description beside it, named <image>_alt (CMS-08): an image without
+# its description is not shown (src/content.config.ts), and the descriptions below say so.
+
+settings:
+  commit:
+    identity: user
+  content:
+    merge: true
+
+# Pages CMS uses the first media source for every field that does not name one: `images` must stay
+# first, or uploaded photos would land outside src/assets/images (CMS-06). npm run check:cms checks it.
+# PDFs go to public/ and are served as they are; a file field names `downloads`.
+media:
+  - name: images
+    label: Immagini
+    input: src/assets/images
+    output: /images
+    rename: safe
+    extensions: [jpg, jpeg, png, webp]
+  - name: downloads
+    label: PDF da scaricare
+    input: public/risorse
+    output: /risorse
+    rename: safe
+    extensions: [pdf]
+
+components:
+  link:
+    type: object
+    fields:
+      - { name: label, label: Testo del pulsante, type: string }
+      - { name: url, label: Indirizzo, type: string, description: "L'indirizzo completo della pagina, che inizia con https://" }
+  entry:
+    type: object
+    fields:
+      - { name: label, label: Etichetta, type: string }
+      - { name: value, label: Valore, type: string }
+  titled_text:
+    type: object
+    fields:
+      - { name: title, label: Titolo, type: string }
+      - { name: text, label: Testo, type: text }
+
+content:
+  - name: home
+    label: Pagina principale
+    type: group
+    items:
+      - name: settings
+        label: Impostazioni e contatti
+        type: file
+        path: src/content/home/settings.yml
+        format: yaml
+        fields:
+          - { name: name, label: Nome, type: string, required: true, description: "Compare in alto nella pagina, in grande nell'apertura, nel titolo della scheda del browser e in fondo a ogni pagina" }
+          - { name: role, label: Chi sei in una riga, type: string, description: "Compare nel titolo della scheda del browser e in fondo a ogni pagina, es. «Autrice · Letture animate e laboratori per bambini». Se è vuoto non compare" }
+          - { name: contact_button, label: Testo del pulsante per contattarti, type: string, required: true, description: "Il pulsante che porta al modulo di contatto: in alto nella pagina, nella sezione del laboratorio e, sul telefono, nel pulsante che resta in un angolo mentre scorri. È lo stesso ovunque, es. «Contattami»" }
+          - { name: email, label: Email, type: string, description: "Compare nella sezione Contatti, nel pulsante per scriverti un'email, e in fondo a ogni pagina. Se è vuota non compare. Attenzione: i messaggi del modulo arrivano alla casella impostata dal tecnico, che non cambia da qui" }
+          - { name: instagram, label: Profilo Instagram, type: string, description: "L'indirizzo completo del profilo, es. https://www.instagram.com/piccolicuoriconsapevoli/. Compare come icona in alto, nella sezione Instagram (il pulsante e il tuo nome, es. @piccolicuoriconsapevoli) e in fondo alla pagina. Se è vuoto, icona, pulsante e nome non compaiono" }
+          - { name: area, label: Dove lavori, type: string, description: "Compare nella sezione Contatti e in fondo alla pagina, es. «Milano e dintorni, e anche più lontano su richiesta». Se è vuoto non compare" }
+          - { name: vat_number, label: Partita IVA, type: string, description: "Se c'è, compare in fondo a ogni pagina (per legge, se l'attività ha la partita IVA). Se è vuota non compare" }
+          - { name: seo_description, label: Descrizione per Google, type: text, description: "Non compare nella pagina: è il testo che Google e i social mostrano sotto il titolo del sito. Al massimo 2 frasi (circa 155 caratteri)" }
+          - { name: social_image, label: Immagine di anteprima social, type: image, description: "Non compare nella pagina: è l'immagine che si vede quando qualcuno condivide il sito su WhatsApp, Facebook o Instagram. Orizzontale, 1200×630 pixel. Se è vuota, al suo posto si usa la copertina del libro" }
+          - { name: social_image_alt, label: Descrizione dell'immagine social, type: text, description: "Cosa si vede nell'immagine, in una frase, per chi non vede. Se cambi l'immagine, aggiorna anche questa" }
+
+      - name: hero
+        label: "1 · Apertura"
+        type: file
+        path: src/content/home/hero.yml
+        format: yaml
+        fields:
+          - { name: eyebrow, label: Etichetta sopra il nome, type: string, description: "La riga breve sopra il tuo nome, es. «Autrice · Letture animate e laboratori» (il nome si cambia nelle Impostazioni). Se è vuota non compare" }
+          - { name: slogan, label: La tua parola, type: string, description: "La parola in grande nell'apertura. Scrivila con la sola iniziale maiuscola, es. «Luce»: il tutto maiuscolo lo fa il sito, così chi usa un lettore di schermo sente la parola e non le lettere una per una. Se è vuota non compare" }
+          - { name: statement, label: La tua frase, type: text, description: "Una o due righe sotto la tua parola, su chi sei o in cosa credi. Tienila breve: è tra le prime cose che si leggono. Se è vuota non compare" }
+          - { name: photo, label: Foto, type: image, description: "La tua foto in apertura, la prima immagine del sito, in una cornice ad arco: meglio verticale, con il viso al centro e un po' di spazio sopra la testa. Serve anche la descrizione qui sotto: senza, la foto non compare" }
+          - { name: photo_alt, label: Descrizione della foto, type: text, description: "Cosa si vede nella foto, in una frase: la legge ad alta voce il lettore di schermo a chi non vede. Senza descrizione la foto non compare. Se cambi la foto, aggiorna anche questa" }
+          - { name: highlight_title, label: Scheda sulla foto, type: string, description: "Una piccola scheda con il simbolo di una medaglia, appoggiata alla foto dell'apertura, per mettere in evidenza un riconoscimento, es. «Premio speciale Favole». Compare solo se c'è anche la foto. Se è vuota, la scheda non compare" }
+          - { name: highlight_text, label: Riga piccola nella scheda, type: string, description: "La riga piccola sotto la notizia, es. «Milano International 2026». Facoltativa" }
+
+      - name: about
+        label: "2 · Chi sono"
+        type: file
+        path: src/content/home/about.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, che è anche la voce del menu in alto, es. «Chi sono». Se è vuota, la sezione sparisce dal menu" }
+          - { name: title, label: Titolo, type: string, description: "Per far risaltare una parola in corsivo colorato, mettila tra due asterischi, es. «Ciao, sono *Roberta*». Senza asterischi il titolo compare tutto normale" }
+          - { name: photo, label: Foto, type: image, description: "Una tua foto diversa da quella dell'apertura, in un riquadro verticale con gli angoli arrotondati e una linea sottile intorno; sugli schermi larghi sta accanto al titolo. Meglio verticale: di una foto orizzontale si vede solo la parte centrale. Serve anche la descrizione qui sotto: senza, la foto non compare. Se è vuota non compare" }
+          - { name: photo_alt, label: Descrizione della foto, type: text, description: "Cosa si vede nella foto, in una frase, per chi non vede. Senza descrizione la foto non compare. Se cambi la foto, aggiorna anche questa" }
+          - { name: bio, label: Biografia, type: text, description: "Il primo paragrafo compare più grande, come introduzione. Lascia una riga vuota tra un paragrafo e l'altro" }
+          - { name: education_title, label: Titolo della formazione, type: string, description: "Il titolo sopra i tuoi studi, es. «Formazione». Una parola tra due asterischi compare in corsivo colorato" }
+          - name: education
+            label: Formazione
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.title}" } }
+            description: "I titoli di studio, uno per voce. Se la lista è vuota, la formazione non compare"
+            fields:
+              - { name: title, label: Titolo di studio, type: string }
+              - { name: institution, label: Università o ente, type: string, description: "Facoltativo: compare accanto al titolo di studio" }
+              - { name: year, label: Anno, type: string, description: "Facoltativo: compare accanto al titolo di studio" }
+          - { name: path_title, label: Titolo del percorso, type: string, description: "Il titolo sopra le tappe del tuo percorso, es. «Il mio *percorso*». Una parola tra due asterischi compare in corsivo colorato" }
+          - name: path
+            label: Il percorso
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.year} {fields.title}" } }
+            description: "Le tappe della tua strada, dalla più vecchia alla più recente: compaiono in quest'ordine lungo una radice che scende dall'orizzonte, sul telefono una sotto l'altra e sugli schermi larghi alternate a destra e a sinistra. L'ultima si illumina: è dove sei oggi. Se la lista è vuota, il percorso non compare"
+            fields:
+              - { name: year, label: Anno, type: string, description: "Facoltativo: se è vuoto la tappa compare senza anno" }
+              - { name: title, label: Titolo, type: string }
+              - { name: text, label: Testo, type: text, description: "Una o due frasi brevi" }
+              - name: kind
+                label: Tipo di tappa
+                type: select
+                description: "Decide il piccolo simbolo che accompagna la tappa. Se è vuoto, la tappa compare senza simbolo"
+                options:
+                  values:
+                    - { name: education, label: Formazione }
+                    - { name: work, label: Lavoro }
+                    - { name: travel, label: Viaggio }
+                    - { name: project, label: Progetto }
+                    - { name: writing, label: Scrittura }
+                    - { name: award, label: Premio }
+
+      - name: book
+        label: "3 · Il libro"
+        type: file
+        path: src/content/home/book.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, che è anche la voce del menu in alto, es. «Il libro». Se è vuota, la sezione sparisce dal menu" }
+          - { name: title, label: Titolo del libro, type: string, description: "Il titolo esatto del libro. Qui gli asterischi non evidenziano: si vedrebbero così come sono" }
+          - { name: subtitle, label: Sottotitolo, type: string, description: "Una riga che dice di che cosa parla il libro. Se è vuota non compare" }
+          - { name: photo, label: Foto del libro, type: image, description: "La foto del libro al centro della sezione, illuminata da dietro, tra la trama e i personaggi, es. il libro tenuto in mano. In un riquadro verticale con gli angoli arrotondati: meglio una foto verticale, perché di una orizzontale si vede solo il centro. Serve anche la descrizione qui sotto: senza, la foto non compare. La copertina ufficiale ha un campo suo, in fondo" }
+          - { name: photo_alt, label: Descrizione della foto del libro, type: text, description: "Cosa si vede nella foto, in una frase, per chi non vede. Senza descrizione la foto non compare. Se cambi la foto, aggiorna anche questa" }
+          - { name: plot, label: Trama, type: text, description: "Il primo paragrafo compare più grande, come introduzione. Lascia una riga vuota tra un paragrafo e l'altro" }
+          - { name: characters_title, label: Titolo dei personaggi, type: string, description: "Es. «I personaggi». Una parola tra due asterischi compare in corsivo colorato" }
+          - name: characters
+            label: Personaggi
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.name}" } }
+            description: "Uno per voce, con il nome e una frase. Se la lista è vuota, i personaggi non compaiono"
+            fields:
+              - { name: name, label: Nome, type: string }
+              - { name: description, label: Descrizione, type: text }
+          - { name: origin_title, label: Titolo di «Com'è nato», type: string, description: "Es. «Com'è nato». Una parola tra due asterischi compare in corsivo colorato. Compare solo insieme al testo qui sotto" }
+          - { name: origin_text, label: Com'è nato il libro, type: text, description: "Compare accanto ai personaggi. Lascia una riga vuota tra un paragrafo e l'altro. Se è vuoto, questa parte non compare, nemmeno il titolo" }
+          - { name: quote, label: Una frase dal libro, type: text, description: "Una citazione breve, copiata dal libro, mostrata in grande e in corsivo. Scrivila senza virgolette: le aggiunge il sito. Se è vuota non compare" }
+          - { name: purchase_title, label: Titolo di «Dove acquistarlo», type: string, description: "Il titolo della finestrella ad arco, come il sole che sorge, che raccoglie i pulsanti per acquistare il libro, dopo la trama e i personaggi, es. «Dove acquistarlo». Una parola tra due asterischi compare in corsivo colorato. Compare solo se c'è almeno un pulsante o la nota qui sotto; se è vuoto, la finestrella resta senza titolo" }
+          - name: purchase_links
+            label: Dove acquistarlo
+            component: link
+            list: { collapsible: { collapsed: true, summary: "{fields.label}" } }
+            description: "Un pulsante per ogni negozio, dentro la finestrella ad arco. Il primo è quello più in evidenza, ed è anche il link che Google collega al libro; gli altri sono più discreti. Ogni pulsante si apre in una nuova scheda e compare solo se ha sia il testo sia l'indirizzo. Se non ci sono pulsanti né nota, la finestrella non compare"
+          - { name: purchase_note, label: Nota sotto i pulsanti, type: string, description: "Una riga in corsivo sotto i pulsanti d'acquisto, es. per dire che il libro si trova anche in libreria. Compare anche senza pulsanti. Se è vuota non compare" }
+          - { name: values_title, label: Titolo dei valori, type: string, description: "Es. «I quattro valori che tengono accesa la *lanterna*». Una parola tra due asterischi compare in corsivo colorato" }
+          - name: values
+            label: I valori
+            component: titled_text
+            list: { collapsible: { collapsed: true, summary: "{fields.title}" } }
+            description: "Gratitudine, gentilezza, amore per sé stessi, rispetto: per ognuno il nome e una frase breve, con una piccola luce che si accende. Sono pensati per essere quattro: sugli schermi larghi stanno in una fila; con un numero diverso si dispongono a due a due. Tieni le frasi corte e di lunghezza simile. Se la lista è vuota, i valori non compaiono"
+          - { name: publisher, label: Editore, type: string, description: "Non compare sul sito: serve ai motori di ricerca per sapere chi pubblica il libro, es. «Gruppo Albatros Il Filo»" }
+          - { name: isbn, label: Codice ISBN, type: string, description: "Non compare sul sito: serve ai motori di ricerca per riconoscere il libro. Le 13 cifre, es. 9791223619445" }
+          - { name: cover, label: Copertina ufficiale, type: image, description: "Non compare nella pagina: è la copertina che leggono Google e gli altri motori di ricerca, e l'anteprima quando si condivide il sito se l'immagine social nelle Impostazioni è vuota. Meglio il file in alta risoluzione dell'editore" }
+          - { name: cover_alt, label: Descrizione della copertina, type: text, description: "Cosa si vede sulla copertina, in una frase, per chi non vede. Se cambi la copertina, aggiorna anche questa" }
+
+      - name: resources
+        label: "4 · Risorse gratuite"
+        type: file
+        path: src/content/home/resources.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, es. «Risorse gratuite». Se è vuota non compare" }
+          - { name: title, label: Titolo, type: string, description: "Per far risaltare una parola in corsivo colorato, mettila tra due asterischi, es. «Piccole luci da *portare a casa*». Senza asterischi il titolo compare tutto normale. Se è vuoto non compare" }
+          - { name: text, label: Testo, type: text, description: "Una o due frasi sotto il titolo: che cosa sono questi materiali e per chi. Se è vuoto non compare" }
+          - { name: button_label, label: Testo del pulsante per scaricare, type: string, required: true, description: "Il pulsante sotto ogni materiale, che scarica il suo PDF con un clic, senza chiedere nulla a chi lo scarica, es. «Scarica il PDF». È lo stesso per tutti i materiali, e non può restare vuoto: senza, non si potrebbe scaricare niente" }
+          - name: items
+            label: I materiali
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.title}" } }
+            description: "Un materiale per voce, nell'ordine in cui compaiono. La sezione è pensata per uno, due o tre materiali: uno solo sta al centro, con l'anteprima accanto alle parole; due o tre si affiancano sugli schermi larghi e si mettono uno sotto l'altro sui telefoni. Con più di tre, quelli in più vanno a capo da soli in una nuova fila: meglio non superare tre. Un materiale compare solo se ha il titolo e il file PDF. Per toglierne uno, elimina la sua voce. Se nessun materiale ha titolo e file, la sezione non compare"
+            fields:
+              - { name: title, label: Titolo, type: string, description: "Il nome del materiale, es. «La mindfulness della lanterna». Senza titolo il materiale non compare" }
+              - { name: text, label: Testo, type: text, description: "Una o due frasi su che cosa c'è dentro, es. «Un piccolo rito della buonanotte in quattro passi». Se è vuoto non compare" }
+              - { name: file, label: File PDF, type: file, options: { media: downloads }, description: "Il PDF che si scarica con il pulsante: caricalo da qui. Per metterne una versione nuova, carica il file nuovo e sceglilo qui. Sopra il pulsante il sito scrive da solo il tipo e il peso del file, es. «PDF · 267 KB»: non serve scriverli nel testo. Senza file, o se il file non c'è più, il materiale non compare" }
+              - { name: preview, label: Anteprima, type: image, description: "Facoltativa: un'immagine della prima pagina del PDF, così si vede com'è prima di scaricarlo. Compare come un foglio appoggiato sul tavolo, un po' inclinato, con un secondo foglio bianco sotto. Il riquadro ha le proporzioni di un foglio A4 verticale: un'immagine di altre proporzioni viene tagliata ai bordi. Serve anche la descrizione qui sotto: senza, l'anteprima non compare. Se è vuota, o senza descrizione, al suo posto compare un foglio bianco con il disegno di un documento" }
+              - { name: preview_alt, label: Descrizione dell'anteprima, type: text, description: "Cosa si vede nell'anteprima, in una frase, per chi non vede, es. «La prima pagina della scheda: un rito della buonanotte in quattro passi». Senza descrizione l'anteprima non compare. Se cambi l'anteprima, aggiorna anche questa" }
+
+      - name: award
+        label: "5 · Il premio"
+        type: file
+        path: src/content/home/award.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, es. «Il premio». Se tutti i campi sono vuoti, la sezione non compare" }
+          - { name: title, label: Nome del riconoscimento, type: string, description: "Es. «Premio speciale *Favole*»: la parola tra due asterischi compare in corsivo colorato. Google lo legge anche come premio del libro, senza asterischi" }
+          - { name: competition, label: Nome del premio letterario, type: string, description: "Es. «Premio Letterario Milano International 2026»" }
+          - { name: detail, label: "Edizione, luogo e data", type: string, description: "Es. «X edizione · Milano, 21 novembre 2026». Se è vuota non compare" }
+          - { name: text, label: Testo, type: text, description: "Lascia una riga vuota tra un paragrafo e l'altro" }
+          - { name: image, label: Foto della premiazione, type: image, description: "In un riquadro alto e stretto con un bordo chiaro, come una storia di Instagram (9:16); sugli schermi larghi esce dalla fascia colorata. Meglio una foto verticale con te al centro: di una foto di altro formato si vede solo la parte centrale. Serve anche la descrizione qui sotto: senza, la foto non compare. Se è vuota non compare" }
+          - { name: image_alt, label: Descrizione della foto, type: text, description: "Cosa si vede nella foto, in una frase, per chi non vede. Senza descrizione la foto non compare. Se cambi la foto, aggiorna anche questa" }
+
+      - name: workshop
+        label: "6 · Il laboratorio"
+        type: file
+        path: src/content/home/workshop.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, che è anche la voce del menu in alto, es. «Il laboratorio». Se è vuota, la sezione sparisce dal menu" }
+          - { name: title, label: Titolo, type: string, description: "Per far risaltare una parola in corsivo colorato, mettila tra due asterischi, es. «Lettura animata e laboratorio delle *lanterne*». Senza asterischi il titolo compare tutto normale" }
+          - { name: intro, label: Introduzione, type: text, description: "Due o tre frasi che dicono che cos'è il laboratorio e a chi è rivolto. Se è vuota non compare" }
+          - { name: steps_title, label: Titolo delle fasi, type: string, description: "Es. «Come si svolge». Una parola tra due asterischi compare in corsivo colorato" }
+          - name: steps
+            label: Le fasi dell'incontro
+            component: titled_text
+            list: { collapsible: { collapsed: true, summary: "{fields.title}" } }
+            description: "Le fasi dell'incontro, nell'ordine in cui si svolgono: compaiono in quest'ordine. Se la lista è vuota non compaiono"
+          - { name: goals_title, label: Titolo degli obiettivi, type: string, description: "Es. «Che cosa portano a casa i bambini». Una parola tra due asterischi compare in corsivo colorato" }
+          - name: goals
+            label: Che cosa portano a casa i bambini
+            component: titled_text
+            list: { collapsible: { collapsed: true, summary: "{fields.title}" } }
+            description: "Un obiettivo per voce, con un titolo breve e una frase. Se la lista è vuota non compaiono"
+          - { name: audience_title, label: Titolo di «Per chi è», type: string, description: "Il titoletto in piccolo e maiuscolo nella scheda con il pulsante per contattarti, es. «Per chi è». Qui gli asterischi non cambiano l'aspetto: il titoletto compare tutto uguale" }
+          - name: audience
+            label: Per chi è
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.title} · {fields.ages}" } }
+            description: "Una voce per ogni tipo di scuola o gruppo. Se la lista è vuota non compare"
+            fields:
+              - { name: title, label: Scuola o gruppo, type: string, description: "Es. «Scuola dell'infanzia»" }
+              - { name: ages, label: Età, type: string, description: "Es. «3–6 anni». Compare in grande, su una riga sola: tienila breve" }
+          - { name: places_title, label: Titolo di «Dove si può fare», type: string, description: "Il titoletto in piccolo e maiuscolo nella scheda con il pulsante per contattarti, es. «Dove si può fare». Qui gli asterischi non cambiano l'aspetto: il titoletto compare tutto uguale" }
+          - { name: places, label: Dove si può fare, type: string, list: true, description: "Un luogo per voce: scuole, biblioteche, librerie... Se la lista è vuota non compare" }
+          - { name: details_title, label: Titolo delle informazioni pratiche, type: string, description: "Il titoletto in piccolo e maiuscolo nella scheda con il pulsante per contattarti, es. «Informazioni pratiche». Qui gli asterischi non cambiano l'aspetto: il titoletto compare tutto uguale" }
+          - name: details
+            label: Informazioni pratiche
+            component: entry
+            list: { collapsible: { collapsed: true, summary: "{fields.label}: {fields.value}" } }
+            description: "Durata, gruppo, materiali, spazio, costo: un'informazione per voce, con etichetta e valore. Se la lista è vuota, le informazioni pratiche non compaiono"
+          - { name: note, label: Nota finale, type: text, description: "Una frase che chiude la sezione, prima del pulsante per contattarti. Se è vuota non compare" }
+          - name: gallery
+            label: Foto dai laboratori
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.image_alt}" } }
+            description: "Foto delle lanterne e dei laboratori, in fondo alla sezione, in riquadri orizzontali: di una foto verticale si vede solo la parte centrale. Per le foto in cui un bambino si riconosce serve il consenso scritto dei genitori: meglio mani e lanterne che volti. Se la lista è vuota non compare"
+            fields:
+              - { name: image, label: Foto, type: image, description: "Serve anche la descrizione qui sotto: senza, la foto non compare" }
+              - { name: image_alt, label: Descrizione della foto, type: text, description: "Cosa si vede nella foto, in una frase, per chi non vede. Senza descrizione la foto non compare" }
+
+      - name: eventsSection
+        label: "7 · Eventi: titoli della sezione"
+        type: file
+        path: src/content/home/events.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, che è anche la voce del menu in alto, es. «Eventi». Gli eventi si aggiungono dalla voce «Eventi» del menu di Pages CMS; se non ce n'è nessuno, la sezione non compare e sparisce dal menu" }
+          - { name: title, label: Titolo, type: string, description: "Per far risaltare una parola in corsivo colorato, mettila tra due asterischi, es. «Dove ci *incontriamo*». Senza asterischi il titolo compare tutto normale" }
+          - { name: intro, label: Testo sotto il titolo, type: text, description: "Facoltativo" }
+          - { name: upcoming_title, label: Titolo dei prossimi eventi, type: string, description: "Compare sopra gli eventi in programma, solo se ce n'è almeno uno. Una parola tra due asterischi compare in corsivo colorato" }
+          - { name: past_title, label: Titolo degli eventi passati, type: string, description: "Compare sopra gli eventi già fatti, solo se ce n'è almeno uno. Una parola tra due asterischi compare in corsivo colorato" }
+          - { name: link_label, label: Testo del link di un evento, type: string, description: "Il testo del link alla pagina di un evento, quando l'evento ne ha una, es. «Maggiori informazioni». Se è vuoto, al suo posto compare il nome del sito a cui porta il link" }
+
+      - name: instagram
+        label: "8 · Instagram"
+        type: file
+        path: src/content/home/instagram.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, es. «Instagram»" }
+          - { name: title, label: Titolo, type: string, description: "Per far risaltare una parola in corsivo colorato, mettila tra due asterischi, es. «Seguimi su *Instagram*». Senza asterischi il titolo compare tutto normale" }
+          - { name: text, label: Testo, type: text, description: "Una o due frasi su cosa racconti su Instagram. Se è vuoto non compare" }
+          - { name: button_label, label: Testo del pulsante, type: string, description: "Il pulsante che porta al tuo profilo, con accanto il tuo nome (es. @piccolicuoriconsapevoli). Il profilo si cambia nelle Impostazioni. Se il testo o il profilo sono vuoti, non compaiono né il pulsante né il nome" }
+          - name: posts
+            label: I post
+            type: object
+            list: { collapsible: { collapsed: true, summary: "{fields.image_alt}" } }
+            description: "I post da mostrare, in quest'ordine: ognuno è un riquadro quadrato che porta al post su Instagram. Con sei post, sugli schermi larghi stanno in una sola fila disposta ad arco, come il sole che sorge; con un numero diverso vanno su righe da tre (da due sul telefono), quindi meglio sei o un multiplo di tre. Se la lista è vuota restano il testo e il pulsante; se mancano anche quelli, la sezione non compare"
+            fields:
+              - { name: image, label: Foto, type: image, description: "Compare in un riquadro quadrato: di una foto verticale si vede un quadrato preso un po' sotto il centro, dove di solito c'è la scritta del post. Serve anche la descrizione qui sotto: senza, il riquadro non compare" }
+              - { name: image_alt, label: Descrizione della foto, type: text, description: "Cosa si vede nella foto, in una frase, per chi non vede. Senza descrizione il riquadro non compare" }
+              - { name: link, label: Link al post, type: string, description: "L'indirizzo del post: aprilo su Instagram e copia l'indirizzo, che inizia con https://www.instagram.com/. Se è vuoto, la foto compare senza link" }
+
+      - name: contact
+        label: "9 · Contatti"
+        type: file
+        path: src/content/home/contact.yml
+        format: yaml
+        fields:
+          - { name: label, label: Etichetta della sezione, type: string, description: "La parola breve sopra il titolo, es. «Contatti»" }
+          - { name: title, label: Titolo, type: string, description: "Per far risaltare una parola in corsivo colorato, mettila tra due asterischi, es. «Accendiamo una *lanterna* insieme». Senza asterischi il titolo compare tutto normale" }
+          - { name: text, label: Testo, type: text, description: "L'invito a scriverti, sotto il titolo. Se è vuoto non compare" }
+          - { name: email_button, label: Testo del pulsante email, type: string, description: "Il pulsante che apre la posta per scriverti all'indirizzo delle Impostazioni, es. «Scrivimi un'email». È anche il link che il modulo propone se l'invio non riesce. Se il testo o l'email nelle Impostazioni sono vuoti, il pulsante non compare" }
+          - { name: form_title, label: Titolo del modulo, type: string, description: "Il titolo sopra il modulo, es. «Mandami un messaggio». Una parola tra due asterischi compare in corsivo colorato. Se è vuoto non compare" }
+          - { name: interests, label: Le scelte di «Cosa ti interessa», type: string, list: true, description: "Le voci tra cui sceglie chi ti scrive, nell'elenco «Cosa ti interessa» del modulo, es. «Il laboratorio delle lanterne». Se la lista è vuota, l'elenco non compare" }
+          - { name: submit_label, label: Testo del pulsante di invio, type: string, required: true, description: "Es. «Invia il messaggio»" }
+          - { name: privacy_note, label: Nota sotto il pulsante, type: string, description: "Una riga breve sotto il pulsante di invio. Se è vuota non compare" }
+          - { name: success_message, label: Messaggio dopo l'invio, type: text, description: "Compare al posto del modulo quando il messaggio è partito. Se è vuoto compare «Messaggio inviato.»" }
+
+  - name: events
+    label: Eventi
+    type: collection
+    path: src/content/events
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      fields: [title, date, city]
+      primary: title
+      sort: [date, title]
+      default: { sort: date, order: desc }
+    fields:
+      - { name: title, label: Titolo, type: string, required: true }
+      - { name: date, label: Data, type: date, required: true, options: { format: yyyy-MM-dd }, description: "Il giorno dell'evento; se dura più giorni, il primo. Compare anche nel foglietto del calendario accanto all'evento, con il giorno e il mese. Serve a mettere gli eventi in ordine e a mostrarli tra i prossimi o tra i passati" }
+      - { name: date_label, label: Data da mostrare, type: string, description: "Facoltativa, per date particolari, es. «7-8 e 14-15 novembre 2026» o «Ottobre 2026». Se è vuota, la data si scrive da sola, es. «21 novembre 2026»" }
+      - { name: time, label: Orario, type: string, description: "Es. «10:30» oppure «16:00–18:30». Facoltativo. Negli eventi passati non compare" }
+      - { name: venue, label: Luogo, type: string, description: "Il posto e l'indirizzo, es. «Bosco della Luna, via Cusago 280». Facoltativo" }
+      - { name: city, label: Città, type: string, description: "Compare accanto al luogo" }
+      - name: kind
+        label: Tipo
+        type: select
+        description: "Compare come etichetta sull'evento. Se è vuoto non compare"
+        options:
+          values: [Lettura animata, Laboratorio, Presentazione, Premio, Altro]
+      - { name: link, label: Link per informazioni, type: string, description: "Facoltativo: la pagina dell'evento, della biblioteca o il post, con l'indirizzo completo che inizia con https://" }
+      - { name: image, label: Immagine, type: image, description: "Facoltativa: una foto o la locandina dell'evento. Compare intera, senza tagli, quindi va bene anche una locandina verticale. Serve anche la descrizione qui sotto: senza, l'immagine non compare" }
+      - { name: image_alt, label: Descrizione dell'immagine, type: text, description: "Cosa si vede nell'immagine, in una frase, per chi non vede. Per una locandina, scrivi che cos'è e le informazioni importanti che non sono già scritte nell'evento. Senza descrizione l'immagine non compare" }
+      - { name: draft, label: Bozza (non pubblicare), type: boolean, default: false, description: "Accesa: l'evento resta salvato ma non compare sul sito" }
+      - { name: body, label: Descrizione, type: rich-text, options: { format: markdown }, description: "Due o tre righe sull'evento: cosa si fa, per chi, con chi" }
+
+  - name: pages
+    label: Altre pagine
+    type: group
+    items:
+      - name: privacy
+        label: Informativa privacy
+        type: file
+        path: src/content/pages/privacy.md
+        format: yaml-frontmatter
+        fields:
+          - { name: title, label: Titolo, type: string, required: true, description: "Compare in cima alla pagina e come link in fondo a ogni pagina del sito, es. «Informativa sulla privacy»" }
+          - { name: description, label: Descrizione della pagina, type: text, description: "Non compare nella pagina: è la frase che si vede sotto il titolo quando qualcuno condivide il link di questa pagina. Se è vuota si usa la Descrizione per Google delle Impostazioni" }
+          - { name: updated, label: Ultimo aggiornamento, type: date, options: { format: yyyy-MM-dd }, description: "La data dell'ultima modifica all'informativa: compare in cima alla pagina. Se è vuota non compare" }
+          - { name: body, label: Testo, type: rich-text, options: { format: markdown } }
+
+      - name: notFound
+        label: Pagina non trovata
+        type: file
+        path: src/content/pages/404.md
+        format: yaml-frontmatter
+        fields:
+          - { name: label, label: Riga sopra il titolo, type: string, description: "La riga breve sopra il titolo, che è anche il nome della scheda del browser, es. «Pagina non trovata». Se è vuota non compare, e la scheda mostra il titolo" }
+          - { name: title, label: Titolo, type: string, required: true, description: "Il titolo della pagina che compare quando qualcuno apre un indirizzo del sito che non esiste, es. «Ti sei perso nel bosco?»" }
+          - { name: body, label: Testo, type: rich-text, options: { format: markdown }, description: "Una o due frasi sotto il titolo" }
+          - { name: button_label, label: Testo del pulsante, type: string, description: "Il pulsante che riporta alla pagina principale, es. «Torna all'inizio». Se è vuoto il pulsante non compare: resta il menu in alto" }

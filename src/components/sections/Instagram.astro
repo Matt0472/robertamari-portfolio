@@ -1,0 +1,220 @@
+---
+/*
+ * Instagram, at sunset: a few of the author's posts set on a gentle arc, like the sun of the mark,
+ * each opening its post; the button leads to the profile in settings.
+ * Rendered only when there is something to show.
+ */
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import NewTabHint from '../NewTabHint.astro';
+import { getSection, instagramHandle } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+
+const instagram = await getSection('instagram');
+const settings = await getSection('settings');
+
+const posts = instagram.posts.flatMap((post) => {
+  const image = resolveImage(post.image);
+  return image ? [{ image, alt: post.image_alt, link: post.link }] : [];
+});
+const profile = settings.instagram && instagram.button_label ? settings.instagram : '';
+
+// Each tile's height on the arc: 1 at the ends, 0 at the middle.
+const middle = (posts.length - 1) / 2;
+const arc = (index: number) => (middle ? ((index - middle) / middle) ** 2 : 0).toFixed(2);
+---
+
+{
+  (posts.length > 0 || instagram.text || profile) && (
+    <section class="section section--rise instagram" aria-labelledby={instagram.title ? 'instagram-title' : undefined}>
+      <div class="container">
+        <div class="instagram__head">
+          <div class="section-head">
+            {instagram.label && (
+              <p class="tag tag--lit" data-reveal>
+                {instagram.label}
+              </p>
+            )}
+            {instagram.title && <Heading id="instagram-title" text={instagram.title} />}
+          </div>
+          {(instagram.text || profile) && (
+            <div class="instagram__invite" data-reveal>
+              {instagram.text && <p class="instagram__text">{instagram.text}</p>}
+              {profile && (
+                <p class="instagram__follow">
+                  <a class="button" href={profile} target="_blank" rel="noopener">
+                    <Icon name="instagram" size={18} />
+                    {instagram.button_label}
+                    <NewTabHint />
+                  </a>
+                  <span class="instagram__handle">{instagramHandle(profile)}</span>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {posts.length > 0 && (
+          <ul class="instagram__posts" role="list">
+            {posts.map((post, index) => {
+              // A post without a link is shown as a plain picture.
+              const Tile = post.link ? 'a' : 'div';
+              return (
+                <li class="post" style={`--arc: ${arc(index)}`}>
+                  <div class="post__reveal" data-reveal style={`--order: ${index}`}>
+                    <Tile
+                      class="post__tile"
+                      href={post.link || undefined}
+                      target={post.link ? '_blank' : undefined}
+                      rel={post.link ? 'noopener' : undefined}
+                    >
+                      {post.link && <span class="sr-only">Post su Instagram: </span>}
+                      <span class="post__frame">
+                        <Image
+                          src={post.image}
+                          alt={post.alt}
+                          widths={[200, 300, 400, 600]}
+                          sizes="(width >= 64rem) 12rem, (width >= 40rem) 30vw, 45vw"
+                          class="post__image"
+                        />
+                      </span>
+                      {post.link && <NewTabHint />}
+                    </Tile>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .instagram {
+    --tint: var(--tint-dusk);
+  }
+
+  .instagram__head {
+    display: grid;
+    gap: var(--space-xl);
+  }
+
+  .instagram__invite {
+    display: grid;
+    gap: var(--space-lg);
+    align-content: end;
+    max-width: 34rem;
+  }
+
+  .instagram__follow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-md);
+    align-items: center;
+  }
+
+  .instagram__handle {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .instagram__posts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-2xl);
+    list-style: none;
+  }
+
+  .post__tile {
+    position: relative;
+    display: block;
+    border-radius: var(--radius-lg);
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  /* The deeper shadow of a lifted tile: its own layer, faded in (CODE-07) */
+  .post__tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .post__frame {
+    display: block;
+    overflow: hidden;
+    border-radius: inherit;
+    background: var(--color-peach-light);
+    box-shadow: var(--shadow-md);
+  }
+
+  /*
+   * Square, as on the profile grid. Vertical posts often carry their caption low in the frame,
+   * so the crop sits a little below the centre.
+   */
+  .post__image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: 50% 66%;
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  a.post__tile:hover {
+    transform: translateY(-6px);
+  }
+
+  a.post__tile:hover::after {
+    opacity: 1;
+  }
+
+  a.post__tile:hover .post__image {
+    transform: scale(1.05);
+  }
+
+  a.post__tile:active {
+    transform: translateY(-2px);
+    transition-duration: var(--duration-fast);
+  }
+
+  a.post__tile:focus-visible {
+    border-radius: var(--radius-lg);
+  }
+
+  @media (width >= 40rem) {
+    .instagram__posts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+  }
+
+  @media (width >= 60rem) {
+    .instagram__head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: var(--space-3xl);
+      align-items: end;
+    }
+  }
+
+  @media (width >= 64rem) {
+    /* One row of six, set on the arc of a rising sun */
+    .instagram__posts:has(> :nth-child(6):last-child) {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      align-items: start;
+      margin-top: var(--space-3xl);
+    }
+
+    .instagram__posts:has(> :nth-child(6):last-child) .post {
+      margin-top: calc(var(--arc) * var(--space-2xl));
+    }
+  }
+</style>

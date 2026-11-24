@@ -1,0 +1,83 @@
+---
+/*
+ * Icons (DES-06): lucide for everything, simple-icons for social brands. Always decorative:
+ * the control or the text beside an icon carries its name.
+ */
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Award,
+  BookOpen,
+  Briefcase,
+  ChevronDown,
+  CircleAlert,
+  CircleCheck,
+  Download,
+  FileText,
+  GraduationCap,
+  Heart,
+  LoaderCircle,
+  Mail,
+  MapPin,
+  Menu,
+  PenLine,
+  Plane,
+  Sprout,
+  X,
+} from 'lucide-static';
+import { siInstagram } from 'simple-icons';
+
+const lucide = {
+  'arrow-right': ArrowRight,
+  'arrow-up-right': ArrowUpRight,
+  award: Award,
+  'book-open': BookOpen,
+  briefcase: Briefcase,
+  'chevron-down': ChevronDown,
+  'circle-alert': CircleAlert,
+  'circle-check': CircleCheck,
+  download: Download,
+  'file-text': FileText,
+  'graduation-cap': GraduationCap,
+  heart: Heart,
+  'loader-circle': LoaderCircle,
+  mail: Mail,
+  'map-pin': MapPin,
+  menu: Menu,
+  'pen-line': PenLine,
+  plane: Plane,
+  sprout: Sprout,
+  x: X,
+};
+
+const brands = {
+  instagram: siInstagram,
+};
+
+export type IconName = keyof typeof lucide | keyof typeof brands;
+
+interface Props {
+  name: IconName;
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 20, class: className = '' } = Astro.props;
+const attributes = `class="icon ${className}" aria-hidden="true" focusable="false" width="${size}" height="${size}"`;
+
+let svg: string;
+if (name in brands) {
+  const icon = brands[name as keyof typeof brands];
+  svg = `<svg ${attributes} viewBox="0 0 24 24" fill="currentColor"><path d="${icon.path}"/></svg>`;
+} else {
+  // Only the opening <svg> tag is rewritten: inner elements keep their own width and height.
+  // The stroke width comes from the --icon-stroke token (.icon in global.css).
+  svg = lucide[name as keyof typeof lucide]
+    .trim()
+    .replace(/<svg[^>]*>/, (tag) =>
+      tag.replace(/\s(class|width|height|stroke-width)="[^"]*"/g, '').replace('<svg', `<svg ${attributes}`),
+    );
+}
+---
+
+<Fragment set:html={svg} />

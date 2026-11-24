@@ -1,0 +1,16 @@
+---
+import { withBase } from '../lib/paths';
+/* Landing page of the form without JavaScript, when the message went through. */
+import Base from '../layouts/Base.astro';
+import SimplePage from '../components/SimplePage.astro';
+import { getSection } from '../lib/content';
+
+const contact = await getSection('contact');
+---
+
+<Base title="Messaggio inviato" noindex>
+  <SimplePage title="Messaggio inviato">
+    {contact.success_message && <p class="lead">{contact.success_message}</p>}
+    <a class="button" href={withBase('/')}>Torna all'inizio</a>
+  </SimplePage>
+</Base>

@@ -1,0 +1,23 @@
+# build
+dist/
+.astro/
+
+# dipendenze
+node_modules/
+
+# Cloudflare / wrangler
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# variabili d'ambiente
+.env
+.env.*
+!.env.example
+
+# materiali privati (PDF del libro, foto originali, bozze): mai su GitHub
+materiali/
+
+# sistema
+.DS_Store
+npm-debug.log*

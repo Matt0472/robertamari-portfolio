@@ -1,0 +1,14 @@
+label: Contatti
+title: Accendiamo una *lanterna* insieme
+text: >-
+  Insegni, lavori in una biblioteca, stai organizzando un evento per bambini o vuoi
+  semplicemente farmi una domanda? Scrivimi: ti rispondo volentieri.
+email_button: Scrivimi un'email
+form_title: Mandami un messaggio
+interests:
+  - Il laboratorio delle lanterne
+  - Una presentazione del libro
+  - Altro
+submit_label: Invia il messaggio
+privacy_note: I dati che mi invii servono solo a rispondere al tuo messaggio.
+success_message: Grazie! Ho ricevuto il tuo messaggio e ti risponderò al più presto.

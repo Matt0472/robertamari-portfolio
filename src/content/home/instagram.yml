@@ -1,0 +1,25 @@
+label: Instagram
+title: Seguimi su *Instagram*
+text: >-
+  Racconto le letture, i laboratori e i piccoli gesti di ogni giorno che tengono
+  accesa la lanterna.
+button_label: Seguimi su Instagram
+posts:
+  - image: /images/luce-mare.jpg
+    image_alt: Roberta in riva al mare, a braccia aperte, con la scritta Luce
+    link: https://www.instagram.com/reel/DeR6XRhAK-M/
+  - image: /images/roberta-premio.jpg
+    image_alt: Roberta Mari sorride con la targa del Premio speciale Favole e il suo libro
+    link: https://www.instagram.com/p/DgBQ0Ggkb8c/
+  - image: /images/lanternata-locandina.jpg
+    image_alt: "Lanterne colorate accese: la locandina de La lanternata al chiaro di luna"
+    link: https://www.instagram.com/p/De9iHrroYj8/
+  - image: /images/gratitudine.jpg
+    image_alt: Roberta ride all'aperto, con la scritta Gratitudine
+    link: https://www.instagram.com/reel/DceCv6coJgG/
+  - image: /images/libro-in-mano.jpg
+    image_alt: Una copia de Il richiamo delle lanterne tenuta in mano
+    link: https://www.instagram.com/p/Davg0HcIUmv/
+  - image: /images/premiazione-palco.jpg
+    image_alt: Roberta sul palco della premiazione del Premio Letterario Milano International
+    link: https://www.instagram.com/reel/DgBaZxuxRgI/

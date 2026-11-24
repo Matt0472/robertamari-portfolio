@@ -1,0 +1,428 @@
+---
+import { withBase } from '../../lib/paths';
+/*
+ * The workshop, in the warm afternoon: how an encounter unfolds and what children take home on
+ * the left; on the right the practical card (who, where, how) that follows the reader and ends
+ * in the one recurring action, «Contattami» (DES-05).
+ */
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import { getSection } from '../../lib/content';
+import { emphasize } from '../../lib/emphasis';
+import { resolveImage } from '../../lib/images';
+
+const workshop = await getSection('workshop');
+const settings = await getSection('settings');
+
+const steps = workshop.steps.filter((step) => step.title || step.text);
+const goals = workshop.goals.filter((goal) => goal.title || goal.text);
+const audience = workshop.audience.filter((group) => group.title || group.ages);
+const places = workshop.places.filter(Boolean);
+const details = workshop.details.filter((detail) => detail.label && detail.value);
+const gallery = workshop.gallery.flatMap((item) => {
+  const image = resolveImage(item.image);
+  return image ? [{ image, alt: item.image_alt }] : [];
+});
+---
+
+<section
+  id="laboratorio"
+  class="section section--rise workshop"
+  tabindex="-1"
+  aria-labelledby={workshop.title ? 'workshop-title' : undefined}
+>
+  <div class="container workshop__grid">
+    <div class="section-head workshop__head">
+      {workshop.label && <p class="tag tag--lit" data-reveal>{workshop.label}</p>}
+      {workshop.title && <Heading id="workshop-title" text={workshop.title} />}
+      {workshop.intro && <p class="lead" data-reveal>{workshop.intro}</p>}
+    </div>
+
+    {
+      steps.length > 0 && (
+        <div class="workshop__block workshop__steps">
+          {workshop.steps_title && <h3 data-reveal set:html={emphasize(workshop.steps_title)} />}
+          <ol class="steps" role="list">
+            {steps.map((step, index) => (
+              <li class="step" data-reveal style={`--order: ${index % 2}`}>
+                <span class="step__number" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <div class="step__body">
+                  {step.title && <p class="step__title">{step.title}</p>}
+                  {step.text && <p>{step.text}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )
+    }
+
+    {
+      goals.length > 0 && (
+        <div class="workshop__block workshop__goals">
+          {workshop.goals_title && <h3 data-reveal set:html={emphasize(workshop.goals_title)} />}
+          <ul class="goals" role="list">
+            {goals.map((goal, index) => (
+              <li class="goal" data-reveal style={`--order: ${index % 2}`}>
+                <Icon name="sprout" size={22} class="goal__icon" />
+                <div class="goal__body">
+                  {goal.title && <p class="goal__title">{goal.title}</p>}
+                  {goal.text && <p>{goal.text}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    <div class="sheet" data-reveal>
+      {
+        audience.length > 0 && (
+          <div class="sheet__group">
+            {workshop.audience_title && <h3 class="sheet__title" set:html={emphasize(workshop.audience_title)} />}
+            <ul class="audience" role="list">
+              {audience.map((group) => (
+                <li class="audience__item">
+                  {group.ages && <span class="audience__ages">{group.ages}</span>}
+                  {group.title && <span>{group.title}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      {
+        places.length > 0 && (
+          <div class="sheet__group">
+            {workshop.places_title && <h3 class="sheet__title" set:html={emphasize(workshop.places_title)} />}
+            <ul class="places" role="list">
+              {places.map((place) => (
+                <li class="tag">{place}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      {
+        details.length > 0 && (
+          <div class="sheet__group">
+            {workshop.details_title && <h3 class="sheet__title" set:html={emphasize(workshop.details_title)} />}
+            <dl class="sheet__details">
+              {details.map((detail) => (
+                <div class="sheet__detail">
+                  <dt>{detail.label}</dt>
+                  <dd>{detail.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )
+      }
+
+      {workshop.note && <p class="sheet__note">{workshop.note}</p>}
+
+      <a class="button sheet__action" href={withBase('/#contatti')}>
+        {settings.contact_button}
+        <Icon name="arrow-right" size={18} />
+      </a>
+    </div>
+  </div>
+
+  {
+    gallery.length > 0 && (
+      <div class="container">
+        <ul class="workshop__gallery" role="list">
+          {gallery.map((item, index) => (
+            <li data-reveal style={`--order: ${index % 3}`}>
+              <Image
+                src={item.image}
+                alt={item.alt}
+                widths={[320, 480, 640]}
+                sizes="(width >= 60rem) 24rem, (width >= 40rem) 46vw, 92vw"
+                class="workshop__photo"
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .workshop {
+    --tint: var(--tint-afternoon);
+  }
+
+  .workshop__grid {
+    display: grid;
+    gap: var(--space-3xl);
+  }
+
+  .workshop__block {
+    display: grid;
+    gap: var(--space-xl);
+    align-content: start;
+  }
+
+  /* Steps: big light numerals in ember, joined by one hairline like a path */
+  .steps {
+    --number: 3.5rem; /* the numbered circle: the path runs through its centre */
+    position: relative;
+    display: grid;
+    gap: var(--space-xl);
+    list-style: none;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: var(--space-xl);
+    bottom: var(--space-xl);
+    left: calc(var(--number) / 2 - var(--line-thin) / 2);
+    border-left: var(--line-thin) dashed var(--line);
+  }
+
+  .step {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--number) minmax(0, 1fr);
+    column-gap: var(--space-lg);
+    align-items: start;
+  }
+
+  .step__number {
+    display: grid;
+    place-items: center;
+    width: var(--number);
+    height: var(--number);
+    border: var(--line-thin) solid var(--line);
+    border-radius: 50%;
+    background: var(--color-paper);
+    box-shadow: var(--shadow-sm);
+    color: var(--mark);
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-style: italic;
+    font-weight: var(--weight-light);
+    line-height: 1;
+  }
+
+  .step__body,
+  .goal__body {
+    display: grid;
+    gap: var(--space-2xs);
+    padding-top: var(--space-sm);
+    max-width: 52ch;
+  }
+
+  .step__title,
+  .goal__title {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  .goals {
+    display: grid;
+    gap: var(--space-xl);
+    list-style: none;
+  }
+
+  .goal {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-md);
+  }
+
+  .goal__icon {
+    margin-top: var(--space-md);
+    color: var(--mark);
+  }
+
+  .goal__body {
+    padding-top: var(--space-xs);
+  }
+
+  /* The practical card: elevated, because it carries the section's action */
+  .sheet {
+    display: grid;
+    gap: var(--space-xl);
+    align-self: start;
+    padding: var(--space-xl) var(--space-lg);
+    border: var(--line-thin) solid color-mix(in srgb, var(--color-cream) 80%, transparent);
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sheet__group {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .sheet__title {
+    color: var(--text-muted);
+    font-family: var(--font-text);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .sheet__title :global(em) {
+    color: inherit;
+    font-style: normal;
+  }
+
+  .audience {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+    gap: var(--space-sm);
+    list-style: none;
+  }
+
+  .audience__item {
+    display: grid;
+    gap: var(--space-2xs);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-peach-light);
+    line-height: var(--leading-snug);
+    font-size: var(--text-sm);
+  }
+
+  .audience__ages {
+    color: var(--mark);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+    /* «6–10 anni» stays on one line: the cell is sized for it */
+    white-space: nowrap;
+  }
+
+  .places {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    list-style: none;
+  }
+
+  .places .tag {
+    padding-block: 0.375rem;
+    color: var(--ink);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .sheet__details {
+    display: grid;
+  }
+
+  .sheet__detail {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 2fr) minmax(0, 3fr);
+    gap: var(--space-sm);
+    padding-block: var(--space-xs);
+    border-bottom: var(--line-thin) solid var(--line-soft);
+    font-size: var(--text-sm);
+  }
+
+  .sheet__detail:last-child {
+    border-bottom: 0;
+  }
+
+  .sheet__detail dt {
+    color: var(--text-muted);
+  }
+
+  .sheet__detail dd {
+    color: var(--ink);
+  }
+
+  .sheet__note {
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-peach-light) 60%, transparent);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-style: italic;
+    line-height: var(--leading-snug);
+  }
+
+  .sheet__action {
+    width: 100%;
+  }
+
+  .workshop__gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-3xl);
+    list-style: none;
+  }
+
+  .workshop__photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  @media (width >= 40rem) {
+    .goals {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-2xl);
+    }
+
+    .sheet {
+      padding: var(--space-2xl) var(--space-xl);
+    }
+  }
+
+  @media (width >= 60rem) {
+    .workshop__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
+      grid-template-areas:
+        'head  sheet'
+        'steps sheet'
+        'goals sheet';
+      column-gap: clamp(var(--space-2xl), 6vw, 6rem);
+    }
+
+    .workshop__head {
+      grid-area: head;
+    }
+
+    .workshop__steps {
+      grid-area: steps;
+    }
+
+    .workshop__goals {
+      grid-area: goals;
+    }
+
+    .sheet {
+      grid-area: sheet;
+    }
+  }
+
+  /* The card follows the reader only where it fits in the viewport whole. */
+  @media (width >= 60rem) and (height >= 54rem) {
+    .sheet {
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-lg));
+    }
+  }
+</style>

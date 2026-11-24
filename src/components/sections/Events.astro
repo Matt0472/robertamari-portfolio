@@ -1,0 +1,344 @@
+---
+/*
+ * Events the author held, organised or took part in, as the sun sets: an agenda of soft cards,
+ * upcoming above past, beside a title that stays in view. Posters are shown whole, never cut.
+ * Drafts never show, and without events the section is not rendered at all (CMS-11).
+ */
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import NewTabHint from '../NewTabHint.astro';
+import { getEvents, getSection } from '../../lib/content';
+import { dateLeaf, isoDate, longDate } from '../../lib/dates';
+import { emphasize } from '../../lib/emphasis';
+import { resolveImage } from '../../lib/images';
+
+const section = await getSection('eventsSection');
+const { upcoming, past } = await getEvents();
+
+const prepare = (list: typeof upcoming) =>
+  Promise.all(
+    list.map(async (event) => ({
+      event,
+      Content: (await render(event)).Content,
+      image: resolveImage(event.data.image),
+      leaf: dateLeaf(event.data.date),
+    })),
+  );
+
+const groups = [
+  { key: 'upcoming', title: section.upcoming_title, items: await prepare(upcoming) },
+  { key: 'past', title: section.past_title, items: await prepare(past) },
+];
+
+const linkLabel = (url: string) => {
+  if (section.link_label) return section.link_label;
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+};
+---
+
+{
+  upcoming.length + past.length > 0 && (
+    <section
+      id="eventi"
+      class="section section--rise events"
+      tabindex="-1"
+      aria-labelledby={section.title ? 'events-title' : undefined}
+    >
+      <div class="container events__grid">
+        <div class="section-head events__head">
+          {section.label && (
+            <p class="tag tag--lit" data-reveal>
+              {section.label}
+            </p>
+          )}
+          {section.title && <Heading id="events-title" text={section.title} />}
+          {section.intro && (
+            <p class="lead" data-reveal>
+              {section.intro}
+            </p>
+          )}
+        </div>
+
+        <div class="events__agenda">
+          {groups.map((group) => (
+            <div
+              class:list={['events__group', `events__group--${group.key}`]}
+              data-events={group.key}
+              hidden={group.items.length === 0}
+            >
+              {group.title && <h3 class="events__group-title" set:html={emphasize(group.title)} />}
+              <ol class="events__list" role="list">
+                {group.items.map(({ event, Content, image, leaf }) => {
+                  const { data } = event;
+                  const where = [data.venue, data.city].filter(Boolean).join(', ');
+                  return (
+                    <li class:list={['event', { 'event--poster': image }]} data-date={isoDate(data.date)} data-reveal>
+                      <span class="event__leaf" aria-hidden="true">
+                        <span class="event__day">{leaf.day}</span>
+                        <span class="event__month">{leaf.month}</span>
+                      </span>
+                      <div class="event__main">
+                        {data.kind && <p class="event__kind">{data.kind}</p>}
+                        <h4 class="event__title">{data.title}</h4>
+                        <p class="event__when">
+                          <time datetime={isoDate(data.date)}>{data.date_label || longDate(data.date)}</time>
+                          {data.time && <span class="event__time">{` · ${data.time}`}</span>}
+                        </p>
+                        {where && (
+                          <p class="icon-line event__where">
+                            <Icon name="map-pin" size={16} />
+                            <span>{where}</span>
+                          </p>
+                        )}
+                        <div class="event__body">
+                          <Content />
+                        </div>
+                        {data.link && (
+                          <a class="event__link" href={data.link} target="_blank" rel="noopener">
+                            {linkLabel(data.link)}
+                            <Icon name="arrow-up-right" size={18} />
+                            <NewTabHint />
+                          </a>
+                        )}
+                      </div>
+                      {image && (
+                        <Image
+                          src={image}
+                          alt={data.image_alt}
+                          widths={[240, 360, 480, 640]}
+                          sizes="(width >= 48rem) 10rem, 18rem"
+                          class="event__poster"
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<script>
+  import { isoDate } from '../../lib/dates';
+
+  // The site is static: an event that has passed since the last build moves to the past list here.
+  const upcoming = document.querySelector<HTMLElement>('[data-events="upcoming"]');
+  const past = document.querySelector<HTMLElement>('[data-events="past"]');
+  const pastList = past?.querySelector('ol');
+
+  if (upcoming && past && pastList) {
+    const today = isoDate(new Date());
+    const stale = Array.from(upcoming.querySelectorAll<HTMLElement>('li[data-date]')).filter(
+      (item) => (item.dataset.date ?? '') < today,
+    );
+    if (stale.length > 0) {
+      // Upcoming runs soonest first, past runs most recent first.
+      pastList.prepend(...stale.reverse());
+      past.hidden = false;
+      upcoming.hidden = !upcoming.querySelector('li[data-date]');
+    }
+  }
+</script>
+
+<style>
+  .events {
+    --tint: var(--tint-sunset);
+  }
+
+  .events__grid {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+
+  .events__agenda {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+
+  .events__group {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .events__group-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-light);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .events__list {
+    display: grid;
+    gap: var(--space-md);
+    list-style: none;
+  }
+
+  /*
+   * One soft card per event: a calendar leaf, the words, and the poster when there is one.
+   * Phones: the words take the card's full width, and the written date stands in for the leaf.
+   */
+  .event {
+    display: grid;
+    gap: var(--space-md) var(--space-lg);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-md);
+  }
+
+  .event__leaf {
+    display: none;
+    background: var(--color-ember);
+    color: var(--color-cream);
+  }
+
+  .event__day {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+  }
+
+  .event__month {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .event__main {
+    display: grid;
+    gap: var(--space-xs);
+    justify-items: start;
+    align-content: start;
+    max-width: var(--measure);
+  }
+
+  .event__kind {
+    padding: 0.125rem var(--space-sm);
+    border-radius: var(--radius-pill);
+    background: var(--color-peach-light);
+    color: var(--text-muted);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .event__title {
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  .event__when {
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .event__time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .event__where {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .event__body {
+    font-size: var(--text-sm);
+  }
+
+  .event__body :global(p + p) {
+    margin-top: var(--space-xs);
+  }
+
+  .event__body :global(a) {
+    color: var(--mark);
+  }
+
+  .event__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    min-height: var(--target-min);
+    color: var(--mark);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* Posters whole, at their own proportions */
+  .event__poster {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: min(100%, 18rem);
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Past events: the same agenda, quieter — a softer leaf, no lift */
+  .events__group--past .event {
+    background: color-mix(in srgb, var(--color-paper) 70%, transparent);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .events__group--past .event__leaf {
+    background: var(--color-peach-light);
+    color: var(--color-ember);
+  }
+
+  /* The time only helps someone who still has to get there; this also covers events the script moves here */
+  .events__group--past .event__time {
+    display: none;
+  }
+
+  @media (width >= 48rem) {
+    .event {
+      grid-template-columns: auto minmax(0, 1fr);
+      padding: var(--space-lg) var(--space-xl) var(--space-lg) var(--space-lg);
+    }
+
+    /* Wide enough for a calendar leaf beside the words */
+    .event__leaf {
+      display: grid;
+      place-content: center;
+      gap: var(--space-2xs);
+      width: 4rem;
+      height: 4.5rem;
+      border-radius: var(--radius-md);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .event--poster {
+      grid-template-columns: auto minmax(0, 1fr) 10rem;
+    }
+
+    .event__poster {
+      grid-column: auto;
+      align-self: start;
+      width: 100%;
+    }
+  }
+
+  @media (width >= 60rem) {
+    .events__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
+      column-gap: clamp(var(--space-2xl), 6vw, 6rem);
+      align-items: start;
+    }
+
+    /* The title stays in view while the agenda scrolls past it */
+    .events__head {
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-2xl));
+    }
+  }
+</style>

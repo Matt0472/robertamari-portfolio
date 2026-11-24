@@ -1,0 +1,27 @@
+---
+import { withBase } from '../lib/paths';
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SimplePage from '../components/SimplePage.astro';
+
+const page = await getEntry('pages', '404');
+if (!page) throw new Error('Missing src/content/pages/404.md');
+const { Content } = await render(page);
+const { label, title, button_label } = page.data;
+---
+
+<Base title={label || title} noindex>
+  <SimplePage title={title} label={label || undefined}>
+    <div class="not-found">
+      <Content />
+    </div>
+    {button_label && <a class="button" href={withBase('/')}>{button_label}</a>}
+  </SimplePage>
+</Base>
+
+<style>
+  .not-found {
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+</style>

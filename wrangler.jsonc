@@ -1,0 +1,29 @@
+{
+  // Cloudflare Worker che serve il sito statico (cartella dist/) e gestisce
+  // il modulo di contatto su /api/contatto.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "robertamari",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Mittente: un indirizzo del dominio con Email Routing attivo (es. sito@robertamari.it)
+    "MAIL_FROM": "",
+    // Destinatario: l'email di Roberta, verificata in Email Routing
+    "MAIL_TO": ""
+  }
+  // Da attivare quando il dominio è su Cloudflare con Email Routing:
+  // "send_email": [
+  //   { "name": "EMAIL", "destination_address": "email-di-roberta@esempio.it" }
+  // ]
+  // Il segreto di Turnstile si imposta con: npx wrangler secret put TURNSTILE_SECRET
+}

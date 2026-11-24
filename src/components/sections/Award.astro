@@ -1,0 +1,173 @@
+---
+/*
+ * The award, after the book and its free resources: the day at its brightest. A warm band, with the award photo
+ * rising out of it; a portrait, shown narrow and whole rather than cropped wide.
+ */
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import { getSection, paragraphs } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+
+const award = await getSection('award');
+const image = resolveImage(award.image);
+const text = paragraphs(award.text);
+// Without anything to say, the band is left out entirely (CMS-11).
+const hasContent = Boolean(award.title || award.competition || award.detail || text.length > 0 || image);
+---
+
+{
+  hasContent && (
+    <section class="section award" aria-labelledby={award.title ? 'award-title' : undefined}>
+      <div class="container">
+        <div class:list={['award__band', { 'award__band--photo': image }]}>
+          <div class="award__text">
+            {
+              award.label && (
+                <p class="tag award__label" data-reveal>
+                  <Icon name="award" size={16} />
+                  {award.label}
+                </p>
+              )
+            }
+            {award.title && <Heading id="award-title" text={award.title} />}
+            {
+              (award.competition || award.detail) && (
+                <div class="award__facts" data-reveal>
+                  {award.competition && <p class="award__competition">{award.competition}</p>}
+                  {award.detail && <p class="award__detail">{award.detail}</p>}
+                </div>
+              )
+            }
+            {
+              text.length > 0 && (
+                <div class="award__body">
+                  {text.map((paragraph, index) => (
+                    <p data-reveal style={`--order: ${index}`}>
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              )
+            }
+          </div>
+
+          {
+            image && (
+              <div class="award__visual" data-reveal>
+                <Image
+                  src={image}
+                  alt={award.image_alt}
+                  widths={[240, 340, 480, 680]}
+                  sizes="(width >= 60rem) 21rem, 15rem"
+                  class="award__image"
+                />
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* Still the book's daylight: the band continues its section */
+  .award {
+    padding-top: 0;
+    background: var(--tint-day);
+  }
+
+  /* A warm band, glowing like the midday sun behind the photo */
+  .award__band {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    gap: var(--space-2xl);
+    padding: var(--space-2xl) var(--space-lg);
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(
+        circle at 78% 50%,
+        color-mix(in srgb, var(--color-golden) 45%, transparent),
+        transparent 55%
+      ),
+      linear-gradient(120deg, var(--color-peach-light), color-mix(in srgb, var(--color-peach-light) 55%, var(--color-peach)));
+    box-shadow: var(--shadow-md);
+  }
+
+  .award__text {
+    display: grid;
+    gap: var(--space-lg);
+    align-content: center;
+    justify-items: start;
+  }
+
+  .award__label {
+    background: color-mix(in srgb, var(--color-cream) 70%, transparent);
+  }
+
+  .award__label :global(.icon) {
+    color: var(--mark);
+  }
+
+  .award__facts {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  .award__competition {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  .award__detail {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .award__body {
+    display: grid;
+    gap: var(--space-md);
+    max-width: 52ch;
+  }
+
+  .award__visual {
+    justify-self: center;
+    width: min(100%, 15rem);
+  }
+
+  .award__image {
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    border: 0.375rem solid var(--color-paper);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  @media (width >= 60rem) {
+    .award__band {
+      grid-template-columns: minmax(0, 1fr) 21rem;
+      column-gap: clamp(var(--space-2xl), 6vw, 6rem);
+      padding: var(--space-3xl) clamp(var(--space-2xl), 5vw, 5rem);
+      overflow: visible;
+    }
+
+    /* The photo rises out of the band, like the sun over the horizon: its foot stays inside */
+    .award__band--photo {
+      margin-top: var(--space-3xl);
+      padding-block: var(--space-2xl);
+    }
+
+    .award__band--photo .award__visual {
+      align-self: end;
+      width: 100%;
+      margin-top: calc(-1 * (var(--space-3xl) + var(--space-2xl)));
+    }
+  }
+</style>

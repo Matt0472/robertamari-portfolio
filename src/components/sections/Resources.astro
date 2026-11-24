@@ -1,0 +1,250 @@
+---
+import { withBase } from '../../lib/paths';
+/*
+ * Free resources: printables born from the book, given like a small gift. Each one is its first
+ * page laid on the table, slightly turned, with a blank sheet under it, beside its words and the
+ * download. One resource sits centred as a single still life; two or three share a row.
+ * Without anything to download the section is not rendered (CMS-11).
+ */
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import { getResources } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+
+const resources = await getResources();
+
+const sizeFormat = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 });
+// The file's kind from its extension, and its weight: shown as «PDF · 267 KB», read as «PDF, 267 KB».
+const fileFacts = (file: string, bytes: number) => {
+  const kind = /\.([a-z0-9]+)$/i.exec(file)?.[1].toUpperCase() ?? '';
+  const size =
+    bytes >= 1024 * 1024 ? `${sizeFormat.format(bytes / 1024 / 1024)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  const parts = [kind, size].filter(Boolean);
+  return { shown: parts.join(' · '), spoken: parts.join(', ') };
+};
+
+const items = resources.items.map((item) => ({
+  ...item,
+  image: resolveImage(item.preview),
+  facts: fileFacts(item.file, item.bytes),
+}));
+---
+
+{
+  items.length > 0 && (
+    <section
+      id="risorse"
+      class="section section--rise resources"
+      tabindex="-1"
+      aria-labelledby={resources.title ? 'resources-title' : undefined}
+    >
+      <div class="container">
+        <div class="section-head section-head--center resources__head">
+          {resources.label && (
+            <p class="tag tag--lit" data-reveal>
+              {resources.label}
+            </p>
+          )}
+          {resources.title && <Heading id="resources-title" text={resources.title} />}
+          {resources.text && (
+            <p class="lead" data-reveal>
+              {resources.text}
+            </p>
+          )}
+        </div>
+
+        <ul class="resources__list" role="list">
+          {items.map((item, index) => (
+            <li class="resource" data-reveal style={`--order: ${index}`}>
+              <div class="resource__inner">
+                <div class="resource__sheets">
+                  <span class="resource__under" aria-hidden="true" />
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.preview_alt}
+                      widths={[240, 320, 480, 640]}
+                      sizes="(width >= 60rem) 15rem, 13rem"
+                      class="resource__preview"
+                    />
+                  ) : (
+                    <span class="resource__preview resource__preview--blank">
+                      <Icon name="file-text" size={36} />
+                    </span>
+                  )}
+                </div>
+
+                <div class="resource__body">
+                  <h3 class="title-display">
+                    {item.title}
+                  </h3>
+                  {item.text && <p class="resource__text">{item.text}</p>}
+                  <p class="resource__facts" aria-hidden="true">
+                    <Icon name="file-text" size={16} />
+                    {item.facts.shown}
+                  </p>
+                  <a class="button resource__download" href={withBase(item.file)} download>
+                    <Icon name="download" size={18} />
+                    {resources.button_label}
+                    {/* The visible label repeats on every resource: the name says which one */}
+                    <span class="sr-only">{`: ${item.title} (${item.facts.spoken})`}</span>
+                  </a>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .resources {
+    --tint: var(--tint-day);
+  }
+
+  .resources__head {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .resources__head .lead {
+    text-wrap: balance;
+  }
+
+  /* One resource stands alone and centred; two or three share a row */
+  .resources__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-3xl) var(--space-2xl);
+    list-style: none;
+  }
+
+  .resources__list:has(> :only-child) {
+    max-width: 50rem;
+    margin-inline: auto;
+  }
+
+  .resource {
+    container-type: inline-size;
+  }
+
+  /* Narrow: the sheet above its words, centred */
+  .resource__inner {
+    display: grid;
+    gap: var(--space-2xl);
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* ---- the sheets on the table ---- */
+
+  .resource__sheets {
+    position: relative;
+    isolation: isolate;
+    width: min(70%, 13rem);
+    aspect-ratio: 210 / 297; /* A4, portrait */
+  }
+
+  /* The warm light of the table lamp behind the sheets */
+  .resource__sheets::before {
+    content: '';
+    position: absolute;
+    z-index: -2;
+    inset: -22% -40%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-golden) 30%, transparent),
+      color-mix(in srgb, var(--color-peach) 20%, transparent) 55%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* The second page, peeking from under the first */
+  .resource__under {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: var(--radius-sheet);
+    background: var(--color-sheet);
+    box-shadow: var(--shadow-md);
+    transform: rotate(4deg) translate(5%, 1%);
+  }
+
+  .resource__preview {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sheet);
+    background: var(--color-sheet);
+    box-shadow: var(--shadow-lg);
+    transform: rotate(-3deg);
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .resource__preview--blank {
+    display: grid;
+    place-items: center;
+    color: var(--mark);
+  }
+
+  /* Reaching for the download lifts the sheet off the table */
+  .resource:has(.resource__download:is(:hover, :focus-visible)) .resource__preview {
+    transform: rotate(-1deg) translateY(-0.5rem);
+  }
+
+  /* ---- the words ---- */
+
+  .resource__body {
+    display: grid;
+    gap: var(--space-sm);
+    justify-items: center;
+    max-width: 28rem;
+  }
+
+  .resource__text {
+    text-wrap: pretty;
+  }
+
+  .resource__facts {
+    display: inline-flex;
+    gap: var(--space-xs);
+    align-items: center;
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .resource__facts :global(.icon) {
+    color: var(--mark);
+  }
+
+  .resource__download {
+    margin-top: var(--space-sm);
+  }
+
+  /* Wide enough: the sheet beside its words, like a still life */
+  @container (width >= 34rem) {
+    .resource__inner {
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: clamp(var(--space-2xl), 8cqi, 5rem);
+      align-items: center;
+      justify-items: start;
+      text-align: start;
+    }
+
+    .resource__sheets {
+      width: 15rem;
+      margin-inline-start: var(--space-lg);
+    }
+
+    .resource__body {
+      justify-items: start;
+    }
+  }
+</style>

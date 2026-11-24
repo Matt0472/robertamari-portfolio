@@ -1,0 +1,55 @@
+label: Il laboratorio
+title: Lettura animata e laboratorio delle *lanterne*
+intro: >-
+  Un incontro per bambini dai 3 ai 10 anni che unisce ascolto, emozioni e manualità.
+  Partiamo dalla storia di Belgiorno e Stellafiore, ne parliamo insieme e poi ognuno
+  costruisce la propria lanterna da portare a casa.
+audience_title: Per chi è
+audience:
+  - title: Scuola dell'infanzia
+    ages: 3–6 anni
+  - title: Scuola primaria
+    ages: 6–10 anni
+places_title: Dove si può fare
+places:
+  - Scuole
+  - Biblioteche
+  - Librerie
+  - Centri estivi
+  - Feste ed eventi
+steps_title: Come si svolge
+steps:
+  - title: Accoglienza
+    text: Ci sediamo in cerchio, ci presentiamo e prepariamo l'ascolto con un piccolo gioco di respiro.
+  - title: Lettura animata
+    text: La storia prende vita con la voce, i gesti, i suoni e qualche oggetto del bosco.
+  - title: Parliamo di emozioni
+    text: Che cos'è la paura? Che cosa ci fa sentire al sicuro? Ognuno trova le sue parole, senza giudizio.
+  - title: Costruiamo la lanterna
+    text: Ogni bambino crea e decora la sua lanterna e porta a casa la propria piccola luce.
+goals_title: Che cosa portano a casa i bambini
+goals:
+  - title: Dare un nome alle emozioni
+    text: La paura del buio e dei cambiamenti diventa qualcosa di cui si può parlare.
+  - title: Ascolto e attenzione
+    text: Brevi momenti di consapevolezza, adatti ai più piccoli, per stare nel qui e ora.
+  - title: Creatività e manualità
+    text: Ritagliare, incollare, decorare. Ogni lanterna è diversa, come chi l'ha costruita.
+  - title: Amicizia e fiducia
+    text: Come Belgiorno e Stellafiore, si scopre il valore di avere qualcuno accanto.
+details_title: Informazioni pratiche
+details:
+  - label: Durata
+    value: 60–90 minuti, in base all'età
+  - label: Gruppo
+    value: Una classe, fino a 25 bambini
+  - label: Materiali
+    value: Inclusi, porto io tutto l'occorrente
+  - label: Spazio
+    value: Un'aula o una sala con tavoli
+  - label: Costo
+    value: Su richiesta, con preventivo su misura
+note: >-
+  È perfetto in autunno e in inverno, ma si adatta a ogni periodo dell'anno e a
+  esigenze particolari. Scrivimi e lo costruiamo insieme.
+gallery: []

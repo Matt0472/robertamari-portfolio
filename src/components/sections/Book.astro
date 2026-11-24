@@ -1,0 +1,472 @@
+---
+/*
+ * The book, as a chapter: the real book in hand at the centre, lit from behind like its lantern,
+ * with the story on one side and its characters on the other; then where to buy it, and the
+ * four values that keep the lantern lit, glowing one by one like LUCE in the opening (DES-08).
+ */
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import NewTabHint from '../NewTabHint.astro';
+import { getSection, paragraphs } from '../../lib/content';
+import { emphasize } from '../../lib/emphasis';
+import { resolveImage } from '../../lib/images';
+
+const book = await getSection('book');
+const photo = resolveImage(book.photo);
+const plot = paragraphs(book.plot);
+const origin = paragraphs(book.origin_text);
+const characters = book.characters.filter((character) => character.name || character.description);
+const values = book.values.filter((value) => value.title || value.text);
+const links = book.purchase_links.filter((link) => link.label && link.url);
+const hasBuy = links.length > 0 || Boolean(book.purchase_note);
+const hasSide = characters.length > 0 || origin.length > 0;
+---
+
+<section id="libro" class="section section--rise book" tabindex="-1" aria-labelledby={book.title ? 'book-title' : undefined}>
+  <div class="container">
+    <div class="section-head section-head--center">
+      {book.label && <p class="tag tag--lit" data-reveal>{book.label}</p>}
+      {/* The real title of the book: shown as published, with no italic marker */}
+      {book.title && <Heading id="book-title" text={book.title} literal />}
+      {book.subtitle && <p class="lead" data-reveal>{book.subtitle}</p>}
+    </div>
+
+    <div class:list={['book__chapter', { 'book__chapter--no-photo': !photo }]}>
+      {
+        plot.length > 0 && (
+          <div class="book__plot">
+            {plot.map((paragraph, index) => (
+              <p data-reveal style={`--order: ${index}`}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )
+      }
+
+      {
+        photo && (
+          <div class="book__visual" data-reveal>
+            <Image
+              src={photo}
+              alt={book.photo_alt}
+              widths={[300, 420, 600, 840]}
+              sizes="(width >= 60rem) 22rem, 18rem"
+              class="book__photo"
+            />
+          </div>
+        )
+      }
+
+      {
+        hasSide && (
+          <div class="book__side">
+            {characters.length > 0 && (
+              <div class="book__characters">
+                {book.characters_title && (
+                  <h3 class="book__minor" data-reveal set:html={emphasize(book.characters_title)} />
+                )}
+                <ul class="characters" role="list">
+                  {characters.map((character, index) => (
+                    <li class="character" data-reveal style={`--order: ${index}`}>
+                      {character.name && <p class="character__name">{character.name}</p>}
+                      {character.description && <p>{character.description}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {origin.length > 0 && (
+              <div class="book__origin" data-reveal>
+                {book.origin_title && <h3 class="book__minor" set:html={emphasize(book.origin_title)} />}
+                {origin.map((paragraph) => (
+                  <p>{paragraph}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      }
+    </div>
+
+    {
+      book.quote && (
+        <blockquote class="book__quote" data-reveal>
+          <p>{book.quote}</p>
+        </blockquote>
+      )
+    }
+
+    {
+      hasBuy && (
+        <div class="buy" data-reveal>
+          <div class="buy__window">
+            <span class="buy__icon" aria-hidden="true">
+              <Icon name="book-open" size={22} />
+            </span>
+            {book.purchase_title && <h3 class="title-display" set:html={emphasize(book.purchase_title)} />}
+            {links.length > 0 && (
+              <ul class="buy__links" role="list">
+                {links.map((link, index) => (
+                  <li>
+                    <a
+                      class:list={['button', index > 0 ? 'button--ghost' : 'button--large']}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      {link.label}
+                      <Icon name="arrow-up-right" size={18} />
+                      <NewTabHint />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {book.purchase_note && <p class="buy__note">{book.purchase_note}</p>}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      values.length > 0 && (
+        <div class="values">
+          {book.values_title && <Heading as="h3" class="title-display values__title" text={book.values_title} />}
+          <ul class="values__list" role="list">
+            {values.map((value, index) => (
+              <li class="value" data-reveal style={`--order: ${index}`}>
+                <span class="value__light" aria-hidden="true" />
+                {value.title && <h4 class="value__name">{value.title}</h4>}
+                {value.text && <p class="value__text">{value.text}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .book {
+    --tint: var(--tint-day);
+  }
+
+  .book .section-head {
+    margin-bottom: var(--space-3xl);
+  }
+
+  /* Phones: the book first, then the story, then the characters */
+  .book__chapter {
+    display: grid;
+    gap: var(--space-2xl);
+    grid-template-areas:
+      'visual'
+      'plot'
+      'side';
+  }
+
+  .book__plot {
+    grid-area: plot;
+    display: grid;
+    gap: var(--space-md);
+    align-content: start;
+    max-width: var(--measure);
+  }
+
+  .book__plot p:first-child {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  /* The book in hand, lit from behind */
+  .book__visual {
+    grid-area: visual;
+    position: relative;
+    isolation: isolate;
+    justify-self: center;
+    width: min(100%, 18rem);
+  }
+
+  .book__visual::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -18% -32%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-golden) 40%, transparent),
+      color-mix(in srgb, var(--color-peach) 30%, transparent) 55%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .book__photo {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .book__side {
+    grid-area: side;
+    display: grid;
+    gap: var(--space-2xl);
+    align-content: start;
+  }
+
+  .book__minor {
+    font-size: var(--text-lg);
+  }
+
+  .book__characters,
+  .book__origin {
+    display: grid;
+    gap: var(--space-md);
+    align-content: start;
+    max-width: var(--measure);
+  }
+
+  .characters {
+    display: grid;
+    gap: var(--space-md);
+    list-style: none;
+  }
+
+  .character {
+    display: grid;
+    gap: var(--space-2xs);
+    padding-top: var(--space-md);
+    border-top: var(--line-thin) solid var(--line-soft);
+  }
+
+  .character__name {
+    color: var(--mark);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-style: italic;
+    line-height: var(--leading-tight);
+  }
+
+  .book__quote {
+    max-width: 32ch;
+    margin: var(--space-3xl) auto 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-style: italic;
+    line-height: var(--leading-snug);
+    text-align: center;
+  }
+
+  .book__quote p::before {
+    content: '«';
+  }
+
+  .book__quote p::after {
+    content: '»';
+  }
+
+  /*
+   * Where to buy: the moment to take the book home. A small window arched like the rising sun of
+   * the opening, lit from the top, with its own hairline ring; the first link is the ember action.
+   */
+  .buy {
+    container-type: inline-size;
+    position: relative;
+    width: min(100%, 34rem);
+    margin: var(--space-3xl) auto 0;
+    padding: var(--space-sm) var(--space-sm) 0;
+  }
+
+  .buy::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 calc(-1 * var(--space-sm));
+    border: var(--line-thin) solid var(--line);
+    border-radius: calc(var(--radius-arch) * 100cqi + var(--space-sm)) calc(var(--radius-arch) * 100cqi + var(--space-sm))
+      calc(var(--radius-xl) + var(--space-sm)) calc(var(--radius-xl) + var(--space-sm));
+    pointer-events: none;
+  }
+
+  .buy__window {
+    display: grid;
+    gap: var(--space-md);
+    justify-items: center;
+    padding: var(--space-2xl) var(--space-lg) var(--space-xl);
+    border-radius: calc(var(--radius-arch) * 100cqi) calc(var(--radius-arch) * 100cqi) var(--radius-xl) var(--radius-xl);
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 0%, color-mix(in srgb, var(--color-golden) 38%, transparent), transparent),
+      linear-gradient(var(--color-paper), var(--color-peach-light));
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+
+  .buy__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: var(--space-2xs);
+    border-radius: 50%;
+    background: var(--color-paper);
+    box-shadow: var(--ring-golden), var(--glow-golden);
+    color: var(--mark);
+  }
+
+  .buy__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+    list-style: none;
+  }
+
+  .buy__note {
+    max-width: 36ch;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-style: italic;
+    line-height: var(--leading-snug);
+  }
+
+  /* ---- the four values: a lantern panel, each value a light that comes on ---- */
+
+  .values {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    gap: var(--space-2xl);
+    justify-items: center;
+    margin-top: var(--space-3xl);
+    padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(var(--color-paper), var(--color-peach-light));
+    box-shadow: var(--shadow-md);
+  }
+
+  /* The lantern's light, rising from the middle of the panel */
+  .values::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -40% 10% 45%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-golden) 30%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .values__title {
+    max-width: 24ch;
+    text-align: center;
+  }
+
+  .values__list {
+    display: grid;
+    gap: var(--space-xl);
+    width: 100%;
+    list-style: none;
+  }
+
+  .value {
+    display: grid;
+    gap: var(--space-xs);
+    align-content: start;
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* A small flame: golden core, ember halo */
+  .value__light {
+    width: 1rem;
+    height: 1rem;
+    margin-bottom: var(--space-sm);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, var(--color-golden), var(--color-ember-light));
+    box-shadow: var(--ring-golden), var(--glow-golden), var(--glow-golden);
+  }
+
+  .value__name {
+    color: var(--ink);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-regular);
+  }
+
+  .value__text {
+    max-width: 30ch;
+    font-size: var(--text-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Each light comes on just after its value appears, one by one */
+    :global(.js) .value__light {
+      opacity: 0;
+      transform: scale(0.3);
+      transition:
+        opacity var(--duration-slow) var(--ease-out),
+        transform var(--duration-slow) var(--ease-out);
+      transition-delay: calc(var(--order, 0) * var(--stagger-light) + var(--duration-base));
+    }
+
+    :global(.js) .value:global(.is-visible) .value__light {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (width >= 40rem) {
+    .values__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-2xl);
+    }
+  }
+
+  @media (width >= 60rem) {
+    /* The triptych: story, book, characters */
+    .book__chapter {
+      grid-template-columns: minmax(0, 1fr) 22rem minmax(0, 1fr);
+      grid-template-areas: 'plot visual side';
+      column-gap: clamp(var(--space-2xl), 5vw, 5rem);
+      align-items: center;
+    }
+
+    .book__chapter--no-photo {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas: 'plot side';
+    }
+
+    .book__visual {
+      width: 100%;
+    }
+
+    .values {
+      padding-inline: var(--space-3xl);
+    }
+
+    /* Four lights in a row, divided by hairlines; any other number wraps in pairs */
+    .values__list:has(> :nth-child(4):last-child) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 0;
+    }
+
+    .values__list:has(> :nth-child(4):last-child) .value {
+      padding-inline: var(--space-lg);
+    }
+
+    .values__list:has(> :nth-child(4):last-child) .value + .value {
+      border-inline-start: var(--line-thin) solid var(--line-soft);
+    }
+  }
+</style>

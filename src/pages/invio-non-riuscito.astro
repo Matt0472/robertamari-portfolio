@@ -1,0 +1,32 @@
+---
+import { withBase } from '../lib/paths';
+/*
+ * Landing page of the form without JavaScript, for every refusal or failure the worker
+ * redirects here (CODE-18): a missing field or consent, the anti-spam check, sending not active
+ * yet, or a sending error. The page names the likely causes without blaming the visitor, and
+ * always offers the email (A11Y-12).
+ */
+import Base from '../layouts/Base.astro';
+import SimplePage from '../components/SimplePage.astro';
+import { getSection } from '../lib/content';
+
+const settings = await getSection('settings');
+---
+
+<Base title="Invio non riuscito" noindex>
+  <SimplePage title="Il messaggio non è partito" label="Invio non riuscito">
+    <p class="lead">
+      Può mancare uno dei campi obbligatori (nome, email, messaggio o il consenso alla privacy), oppure l'invio dal
+      sito non ha funzionato questa volta o non è ancora attivo.
+    </p>
+    <p>Torna al modulo, controlla i campi e riprova tra poco.</p>
+    {
+      settings.email && (
+        <p>
+          Se non parte, scrivimi direttamente a <a href={`mailto:${settings.email}`}>{settings.email}</a>.
+        </p>
+      )
+    }
+    <a class="button" href={withBase('/#contatti')}>Torna al modulo</a>
+  </SimplePage>
+</Base>

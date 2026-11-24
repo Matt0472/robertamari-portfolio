@@ -1,0 +1,56 @@
+label: Chi sono
+title: Ciao, sono *Roberta*
+photo: /images/roberta-sorriso.jpg
+photo_alt: Roberta Mari seduta all'aperto, sorridente
+bio: |-
+  Sono nata e cresciuta a Milano, con il cuore sempre rivolto al mare. Dopo la laurea in Scienze Politiche ho fatto tanti lavori diversi: ho servito ai tavoli di diversi ristoranti, ho lavorato per DHL e ho vissuto per circa un anno in Australia. Ogni esperienza mi ha insegnato qualcosa sulle persone.
+
+  Al mio ritorno ho insegnato in una scuola statale e ho lavorato in un centro diurno. Dopo la nascita del mio secondo figlio ho scelto di dedicarmi a ciò che sentivo davvero mio e ho conseguito un master in Mindfulness, pensiero positivo ed educazione emozionale. Intanto gli albi illustrati, letti insieme ai miei figli, sono diventati una grande passione.
+
+  Nel 2025, con un gruppo di famiglie, ho fondato una comunità educante. Da lì è nato «Il richiamo delle lanterne» e, oggi, il desiderio di portarne il messaggio nelle scuole, nelle biblioteche e ovunque ci siano bambini pronti ad ascoltare.
+path_title: Il mio *percorso*
+path:
+  - year: ""
+    title: Laurea in Scienze Politiche
+    text: Lo studio della società e delle persone, il primo passo.
+    kind: education
+  - year: ""
+    title: Tanti lavori, tante persone
+    text: Cameriera in diversi ristoranti, poi DHL. Esperienze che mi hanno insegnato ascolto, pazienza e lavoro di squadra.
+    kind: work
+  - year: ""
+    title: Un anno in Australia
+    text: Circa un anno dall'altra parte del mondo, che mi ha cambiato lo sguardo.
+    kind: travel
+  - year: ""
+    title: L'insegnamento nella scuola statale
+    text: Al ritorno dall'Australia, l'insegnamento e la vita di classe.
+    kind: work
+  - year: ""
+    title: Il centro diurno
+    text: Un lavoro fatto di relazione e di cura, ogni giorno.
+    kind: work
+  - year: ""
+    title: Master in Mindfulness, pensiero positivo ed educazione emozionale
+    text: Dopo la nascita del mio secondo figlio, la scelta di dedicarmi a ciò che sentivo davvero mio.
+    kind: education
+  - year: "2025"
+    title: Una comunità educante
+    text: Insieme a un gruppo di famiglie nasce una comunità educante.
+    kind: project
+  - year: "2026"
+    title: «Il richiamo delle lanterne»
+    text: Esce con Gruppo Albatros la mia fiaba illustrata.
+    kind: writing
+  - year: "2026"
+    title: Premio speciale Favole
+    text: Al Premio Letterario Milano International, X edizione.
+    kind: award
+education_title: Formazione
+education:
+  - title: Laurea in Scienze Politiche
+    institution: ""
+    year: ""
+  - title: Master in Mindfulness, pensiero positivo ed educazione emozionale
+    institution: ""
+    year: ""

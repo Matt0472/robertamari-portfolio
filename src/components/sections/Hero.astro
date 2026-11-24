@@ -1,0 +1,391 @@
+---
+/*
+ * Opening, at dawn (DES-04, DES-08, DES-09): the author's photo rises in an arch like the sun of
+ * the mark, standing on the horizon line; beside it her name, her word lit like a lantern and
+ * her sentence. No buttons (DES-05). The photo is the LCP element: it never animates (DES-07).
+ */
+import { Image } from 'astro:assets';
+import Heading from '../Heading.astro';
+import Icon from '../Icon.astro';
+import Mark from '../Mark.astro';
+import { getSection } from '../../lib/content';
+import { resolveImage } from '../../lib/images';
+
+const settings = await getSection('settings');
+const hero = await getSection('hero');
+const photo = resolveImage(hero.photo);
+
+// The word shrinks with its length, so a longer one still fits its column whole (DES-08).
+const sloganLetters = Math.max(Array.from(hero.slogan.trim()).length, 4);
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero__grid">
+    {
+      hero.eyebrow && (
+        <p class="tag tag--lit hero__eyebrow" data-intro style="--order: 0">
+          {hero.eyebrow}
+        </p>
+      )
+    }
+
+    <Heading as="h1" id="hero-title" class="hero__name" text={settings.name} reveal="intro" literal />
+
+    {
+      photo && (
+        <div class="hero__visual">
+          <Mark name="birds" class="hero__birds" />
+          <div class="hero__frame">
+            <Image
+              src={photo}
+              alt={hero.photo_alt}
+              widths={[320, 480, 640, 800, 1040]}
+              sizes="(width >= 60rem) 32rem, 20rem"
+              loading="eager"
+              fetchpriority="high"
+              class="hero__image"
+            />
+          </div>
+          {hero.highlight_title && (
+            <div class="hero__card" data-intro style="--order: 5">
+              <span class="hero__card-icon">
+                <Icon name="award" size={20} />
+              </span>
+              <p class="hero__card-text">
+                <span class="hero__card-title">{hero.highlight_title}</span>
+                {hero.highlight_text && <span class="hero__card-detail">{hero.highlight_text}</span>}
+              </p>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    {
+      hero.slogan && (
+        <div class="hero__light" data-intro style={`--order: 3; --letters: ${sloganLetters}`}>
+          <p class="hero__slogan">{hero.slogan}</p>
+        </div>
+      )
+    }
+
+    {
+      hero.statement && (
+        <p class="hero__statement" data-intro style="--order: 4">
+          {hero.statement}
+        </p>
+      )
+    }
+  </div>
+
+  <div class="container">
+    <span class="hero__horizon" aria-hidden="true"></span>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: var(--space-lg);
+    overflow-x: clip;
+  }
+
+  /* Phones: one centred column, the photo between the name and the word */
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'eyebrow'
+      'name'
+      'visual'
+      'light'
+      'statement';
+    justify-items: center;
+    text-align: center;
+  }
+
+  .hero__eyebrow {
+    grid-area: eyebrow;
+    max-width: 100%;
+  }
+
+  .hero__name {
+    grid-area: name;
+    margin-top: var(--space-md);
+    font-weight: var(--weight-light);
+  }
+
+  /* ---- the photo, rising in an arch ---- */
+
+  .hero__visual {
+    --frame: min(100% - var(--space-2xl), 20rem, (100svh - var(--header-height) - 18rem) * 0.8);
+    --ring: 0.875rem;
+    grid-area: visual;
+    position: relative;
+    isolation: isolate;
+    container-type: inline-size;
+    width: max(12rem, var(--frame));
+    margin-top: calc(var(--space-xl) + var(--ring));
+  }
+
+  .hero__frame {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: calc(var(--radius-arch) * 100cqi) calc(var(--radius-arch) * 100cqi) var(--radius-md) var(--radius-md);
+    background: var(--color-peach-light);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The sun's ring: one hairline around the arch, standing on the same ground */
+  .hero__visual::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--ring)) calc(-1 * var(--ring)) 0;
+    border: var(--line-thin) solid var(--line);
+    border-bottom: 0;
+    border-radius: calc(var(--radius-arch) * 100cqi + var(--ring)) calc(var(--radius-arch) * 100cqi + var(--ring)) 0 0;
+    pointer-events: none;
+  }
+
+  /* Its glow, behind the top of the arch */
+  .hero__visual::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -22% -30% 35%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-golden) 34%, transparent),
+      color-mix(in srgb, var(--color-peach) 22%, transparent) 55%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* In the corner the arch leaves free; further out on wide screens */
+  .hero__birds {
+    position: absolute;
+    top: -0.5rem;
+    left: -1rem;
+    color: var(--mark);
+  }
+
+  /* The light card laid on the photo */
+  .hero__card {
+    position: absolute;
+    bottom: var(--space-lg);
+    left: calc(-1 * var(--space-lg));
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    max-width: calc(100% + var(--space-lg));
+    padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-sm);
+    border: var(--line-thin) solid color-mix(in srgb, var(--color-cream) 70%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-cream) 84%, transparent);
+    box-shadow: var(--shadow-lg);
+    text-align: start;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .hero__card-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--color-peach-light);
+    box-shadow: var(--ring-golden);
+    color: var(--mark);
+  }
+
+  .hero__card-text {
+    display: grid;
+    line-height: var(--leading-snug);
+  }
+
+  .hero__card-title {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+  }
+
+  .hero__card-detail {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+  }
+
+  /* ---- the word, lit like a lantern (DES-08) ---- */
+
+  .hero__light {
+    grid-area: light;
+    position: relative;
+    isolation: isolate;
+    container-type: inline-size;
+    width: 100%;
+    margin-top: var(--space-xl);
+  }
+
+  .hero__light::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -70% 10%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-golden) 42%, transparent),
+      color-mix(in srgb, var(--color-peach) 30%, transparent) 50%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .hero__slogan {
+    color: var(--mark);
+    font-family: var(--font-display);
+    /* Never wider than its column: the size follows the number of letters */
+    font-size: min(var(--text-slogan), 100cqi / (var(--letters) * 0.92));
+    font-weight: var(--weight-light);
+    line-height: 1;
+    letter-spacing: var(--tracking-slogan);
+    /* the tracking after the last letter would push the word off-centre */
+    margin-inline-end: calc(-1 * var(--tracking-slogan));
+    text-shadow: 0 0 1.5rem color-mix(in srgb, var(--color-golden) 55%, transparent);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  .hero__statement {
+    grid-area: statement;
+    max-width: 28ch;
+    margin-top: var(--space-md);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-style: italic;
+    line-height: var(--leading-snug);
+  }
+
+  /* The horizon the photo stands on */
+  .hero__horizon {
+    display: block;
+    margin-top: var(--space-2xl);
+    border-top: var(--line-thin) solid var(--line);
+    mask-image: linear-gradient(90deg, transparent, black 14%, black 86%, transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__light::before {
+      animation: lantern var(--duration-glow) var(--ease-out) var(--duration-slow) both;
+    }
+
+    .hero__visual::before {
+      animation: ring-in var(--duration-draw) var(--ease-out) var(--duration-base) both;
+    }
+
+    .hero__horizon {
+      animation: horizon-in var(--duration-draw) var(--ease-in-out) var(--duration-fast) both;
+    }
+  }
+
+  /* The lantern lights, flickers once and settles: it does not keep moving (A11Y-07). */
+  @keyframes lantern {
+    0% {
+      opacity: 0;
+      transform: scale(0.55);
+    }
+    45% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+    60% {
+      opacity: 0.82;
+    }
+    75% {
+      opacity: 1;
+      transform: scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes ring-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+  }
+
+  @keyframes horizon-in {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* Wide screens: the words on the left, the photo on the right, standing on the horizon */
+  @media (width >= 60rem) {
+    .hero {
+      padding-top: var(--space-xl);
+    }
+
+    .hero__grid {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: 1fr repeat(4, auto) 1fr;
+      grid-template-areas:
+        '.         visual'
+        'eyebrow   visual'
+        'name      visual'
+        'light     visual'
+        'statement visual'
+        '.         visual';
+      column-gap: clamp(var(--space-2xl), 6vw, 7rem);
+      justify-items: start;
+      text-align: start;
+    }
+
+    .hero__name {
+      margin-top: var(--space-lg);
+    }
+
+    .hero__visual {
+      --frame: min(32rem, (100svh - var(--header-height) - 8rem) * 0.8);
+      margin-top: var(--ring);
+      margin-inline-end: var(--space-lg);
+    }
+
+    .hero__card {
+      bottom: var(--space-2xl);
+      left: calc(-1 * var(--space-3xl));
+    }
+
+    .hero__birds {
+      top: 4%;
+      left: -5rem;
+    }
+
+    .hero__light {
+      max-width: 34rem;
+    }
+
+    .hero__light::before {
+      inset: -75% 25% -75% -12%;
+    }
+
+    .hero__statement {
+      margin-top: var(--space-lg);
+    }
+
+    .hero__horizon {
+      margin-top: 0;
+    }
+  }
+</style>
